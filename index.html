@@ -249,20 +249,19 @@ const PRESET_GROUPS = {
   ]
 };
 
-// ---------- 자동 입장 설정 ----------
-// 이 값을 대회 코드로 지정하면, 페이지를 열었을 때 코드 입력 없이
-// 바로 해당 대회의 "관람객 모드"로 들어갑니다.
-// 운영단(관리자)은 화면 우측 상단의 "운영단 로그인"으로 전환합니다.
-// 자동입장을 쓰지 않으려면 빈 문자열 ""로 두면 기존 코드 입력 화면이 나옵니다.
-const AUTO_JOIN_CODE = "구리남양주2026";
+// ---------- 내부 설정 (사용자는 신경 쓸 필요 없음) ----------
+// 대회 데이터를 저장할 내부 식별자입니다. 화면에는 노출되지 않습니다.
+const TOURNAMENT_ID = "구리남양주2026";
+// 운영단(관리자) 전환 시 사용할 비밀번호입니다. 필요하면 이 값만 바꾸세요.
+const ADMIN_PASSWORD = "마석중2026";
 
 // ---------- 전역 상태 ----------
 let state = {
-  code: null,
+  code: TOURNAMENT_ID,
   role: null,          // 'admin' | 'spectator'
   division: null,
   subtab: 'setup',      // 'setup' | 'matches' | 'standings' | 'bracket'
-  data: null,           // firebase live data for current code
+  data: null,           // firebase live data
 };
 
 function toast(msg){
@@ -273,13 +272,11 @@ function toast(msg){
 }
 
 function saveLocal(){
-  try{ localStorage.setItem('dodgeball_code', state.code||''); localStorage.setItem('dodgeball_role', state.role||''); }catch(e){}
+  try{ localStorage.setItem('dodgeball_role', state.role||''); }catch(e){}
 }
 function loadLocal(){
   try{
-    const c = localStorage.getItem('dodgeball_code');
     const r = localStorage.getItem('dodgeball_role');
-    if(c) state.code = c;
     if(r) state.role = r;
   }catch(e){}
 }
@@ -290,30 +287,22 @@ function loadLocal(){
 const app = document.getElementById('app');
 
 function render(){
-  if(state.forceLanding){ renderLanding(); return; }
-  if(!state.code && AUTO_JOIN_CODE){ autoJoinSpectator(); return; }
-  if(!state.code){ renderLanding(); return; }
-  renderMain();
+  loadLocal();
+  if(!state.role) state.role='spectator';
+  bootstrapAndEnter();
 }
 
-function autoJoinSpectator(){
+function bootstrapAndEnter(){
   app.innerHTML = `<div class="landing"><div class="court-mark">${courtMarkSVG()}</div><div class="brand-sub">불러오는 중...</div></div>`;
-  db.ref('tournaments/'+AUTO_JOIN_CODE+'/meta').once('value').then(snap=>{
-    if(!snap.exists()){
-      app.innerHTML = `<div class="landing">
-        <div class="court-mark">${courtMarkSVG()}</div>
-        <div>
-          <div class="brand-title">아직 대회가 준비되지 않았습니다</div>
-          <div class="brand-sub">운영단이 먼저 대회를 생성해야 관람객 화면이 열립니다.</div>
-        </div>
-        <button class="btn btn-primary" onclick="state.forceLanding=true;render()">운영단으로 대회 생성하기</button>
-      </div>`;
-      return;
-    }
-    state.code = AUTO_JOIN_CODE;
-    state.role = 'spectator';
-    saveLocal();
-    render();
+  db.ref('tournaments/'+TOURNAMENT_ID+'/meta').once('value').then(snap=>{
+    if(snap.exists()){ renderMain(); return; }
+    // 대회 데이터가 아직 없으면 요강 프리셋으로 자동 생성
+    const initDivisions = {};
+    DIVISION_ORDER.forEach(k=>{ initDivisions[k] = buildDivisionData(k); });
+    db.ref('tournaments/'+TOURNAMENT_ID).set({
+      meta:{ name:"구리남양주 학교스포츠클럽 축제 · 피구", createdAt: Date.now(), adminPw: ADMIN_PASSWORD },
+      divisions: initDivisions
+    }).then(()=>{ renderMain(); });
   });
 }
 
@@ -325,28 +314,6 @@ function courtMarkSVG(){
     <rect x="4" y="4" width="26" height="92" fill="#f4c430" opacity="0.12"/>
     <rect x="130" y="4" width="26" height="92" fill="#f4c430" opacity="0.12"/>
   </svg>`;
-}
-
-function renderLanding(){
-  loadLocal();
-  app.innerHTML = `
-  <div class="landing">
-    <div class="court-mark">${courtMarkSVG()}</div>
-    <div>
-      <div class="brand-title">구리남양주 <span class="accent">피구</span> 운영판</div>
-      <div class="brand-sub">2026 학교스포츠클럽 축제 · 실시간 대진표 &amp; 결과 관리</div>
-    </div>
-    <div class="card">
-      <div style="font-weight:700;margin-bottom:10px;font-size:14px;">대회 코드로 입장</div>
-      <input type="text" id="joinCode" placeholder="예: MASEOK26" maxlength="12" style="text-transform:uppercase">
-      <button class="btn btn-primary btn-block" onclick="joinWorkspace()">입장하기</button>
-      <div class="hr-label">또는</div>
-      <div style="font-weight:700;margin-bottom:10px;font-size:14px;">새 대회 코드 만들기</div>
-      <input type="text" id="newCode" placeholder="새 코드 (예: JIGU2026)" maxlength="12" style="text-transform:uppercase">
-      <input type="password" id="newAdminPw" placeholder="운영단 관리자 비밀번호 설정">
-      <button class="btn btn-block" onclick="createWorkspace()">대회 코드 생성</button>
-    </div>
-  </div>`;
 }
 
 // 프리셋 기준으로 조편성+팀배정+예선대진까지 한번에 만드는 빌더
@@ -389,68 +356,12 @@ function buildDivisionData(k){
   return { label:p.label, groups, teams, matches, bracket:{}, bracketLocked:false };
 }
 
-window.createWorkspace = function(){
-  const code = document.getElementById('newCode').value.trim().toUpperCase();
-  const pw = document.getElementById('newAdminPw').value.trim();
-  if(!code){ toast('코드를 입력하세요'); return; }
-  if(!pw){ toast('관리자 비밀번호를 설정하세요'); return; }
-  db.ref('tournaments/'+code+'/meta').once('value').then(snap=>{
-    if(snap.exists()){ toast('이미 존재하는 코드입니다. 입장해주세요.'); return; }
-    const initDivisions = {};
-    DIVISION_ORDER.forEach(k=>{ initDivisions[k] = buildDivisionData(k); });
-    db.ref('tournaments/'+code).set({
-      meta:{ name:code, createdAt: Date.now(), adminPw: pw },
-      divisions: initDivisions
-    }).then(()=>{
-      state.code = code; state.role='admin'; state.forceLanding=false; saveLocal();
-      toast('대회가 생성되었습니다 (조편성·예선대진 자동 완료)');
-      render();
-    });
-  });
-};
-
-window.joinWorkspace = function(){
-  const code = document.getElementById('joinCode').value.trim().toUpperCase();
-  if(!code){ toast('코드를 입력하세요'); return; }
-  db.ref('tournaments/'+code+'/meta').once('value').then(snap=>{
-    if(!snap.exists()){ toast('존재하지 않는 코드입니다'); return; }
-    state.code = code;
-    showRolePrompt(snap.val());
-  });
-};
-
-function showRolePrompt(meta){
-  const overlay = document.createElement('div');
-  overlay.className='landing';
-  overlay.style.position='fixed'; overlay.style.inset='0'; overlay.style.background='rgba(18,21,27,0.97)'; overlay.style.zIndex='50';
-  overlay.innerHTML = `
-    <div class="card">
-      <div style="font-weight:700;margin-bottom:12px;">${meta.name} · 역할 선택</div>
-      <button class="btn btn-primary btn-block" onclick="chooseRole('spectator')">참관 (읽기 전용)</button>
-      <div class="hr-label">또는</div>
-      <input type="password" id="pwCheck" placeholder="운영단 관리자 비밀번호">
-      <button class="btn btn-block" onclick="chooseRole('admin')">운영단으로 입장</button>
-    </div>`;
-  document.body.appendChild(overlay);
-  window._roleMeta = meta;
-  window._roleOverlay = overlay;
-}
-window.chooseRole = function(role){
-  if(role==='admin'){
-    const pw = document.getElementById('pwCheck').value;
-    if(pw !== window._roleMeta.adminPw){ toast('비밀번호가 올바르지 않습니다'); return; }
-  }
-  state.role = role; state.forceLanding=false; saveLocal();
-  window._roleOverlay.remove();
-  render();
-};
-
 // ---------- 메인 화면 ----------
 function renderMain(){
   db.ref('tournaments/'+state.code).off();
   db.ref('tournaments/'+state.code).on('value', snap=>{
     state.data = snap.val();
-    if(!state.data){ toast('대회 데이터를 찾을 수 없습니다'); state.code=null; saveLocal(); render(); return; }
+    if(!state.data){ toast('대회 데이터를 불러오지 못했습니다. 새로고침해주세요.'); return; }
     paintMain();
   });
 }
@@ -465,7 +376,6 @@ function paintMain(){
       ${state.role==='admin'
         ? `<button class="btn btn-ghost btn-sm" onclick="backToSpectator()">참관모드로</button>`
         : `<button class="btn btn-ghost btn-sm" onclick="adminLoginPrompt()">운영단 로그인</button>`}
-      ${!AUTO_JOIN_CODE ? `<button class="btn btn-ghost btn-sm" onclick="leaveWorkspace()">나가기</button>` : ''}
     </div>
   </div>
   <div class="wrap">`;
@@ -530,13 +440,6 @@ window.submitAdminLogin = function(){
 window.backToSpectator = function(){
   state.role='spectator'; saveLocal(); paintMain();
 };
-window.leaveWorkspace = function(){
-  db.ref('tournaments/'+state.code).off();
-  state.code=null; state.role=null; state.division=null; state.forceLanding=false;
-  localStorage.removeItem('dodgeball_code'); localStorage.removeItem('dodgeball_role');
-  render();
-};
-
 function renderSubtab(k,div){
   if(state.subtab==='setup') return renderSetup(k,div);
   if(state.subtab==='matches') return renderMatches(k,div);
@@ -1121,12 +1024,6 @@ function propagateBracketWinner(k,roundIdx,mid){
 }
 
 // ============================================================
-loadLocal();
-if(AUTO_JOIN_CODE && state.code===AUTO_JOIN_CODE && state.role==='admin'){
-  // 같은 기기에서 이전에 운영단 로그인을 했었다면 자동으로 유지
-} else {
-  state.code = null; state.role = null;
-}
 render();
 </script>
 </body>
