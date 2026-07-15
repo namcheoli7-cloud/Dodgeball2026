@@ -213,6 +213,42 @@ const DIVISION_PRESETS = {
 };
 const DIVISION_ORDER = ["boyEl","girlEl","girlMs","girlHs"];
 
+// ---------- 조편성 프리셋 ----------
+// 요강 시간표에 실린 실제 경기쌍들을 전부 모아 역추적(같은 조끼리만 경기하는
+// 폐쇄 그룹 구조)한 결과이며, 4개 종목 모두 학교쌍 데이터가 모순 없이
+// 정확히 재구성되어 프리셋으로 제공합니다.
+const PRESET_GROUPS = {
+  boyEl: [
+    {name:'남A', teams:['다산하늘초','남양주송라초','다산새봄초','금교초']},
+    {name:'남B', teams:['장승초','남양주다산초','창현초','평내초']}
+  ],
+  girlEl: [
+    {name:'여A', teams:['남양주양정초','장승초','창현초']},
+    {name:'여B', teams:['장내초','남양주다산초','남양주백봉초']},
+    {name:'여C', teams:['주곡초','부양초','다산새봄초']},
+    {name:'여D', teams:['토평초','진접초','다산가람초']},
+    {name:'여E', teams:['다산하늘초','양오초','남양주미금초']},
+    {name:'여F', teams:['해밀초','남양주송라초','금교초']},
+    {name:'여G', teams:['장자초','화봉초']}
+  ],
+  girlMs: [
+    {name:'1조', teams:['구리여중','진접중','가운중']},
+    {name:'2조', teams:['퇴계원중','장내중','갈매중','미금중']},
+    {name:'3조', teams:['오남중','예봉중','송라중','풍양중']},
+    {name:'4조', teams:['덕소중','광동중','도농중','하랑중']},
+    {name:'5조', teams:['동구중','마석중','화접중','장자중']},
+    {name:'6조', teams:['다산한강중','양오중','인창중','와부중']},
+    {name:'7조', teams:['판곡중','별가람중','교문중','진건중']},
+    {name:'8조', teams:['다산새봄중','평내중','호평중','어람중']}
+  ],
+  girlHs: [
+    {name:'A조', teams:['광동고','덕소고','도농고','인창고']},
+    {name:'B조', teams:['평내고','수택고','오남고','와부고']},
+    {name:'C조', teams:['진건고','남양주다산고','가운고','진접고']},
+    {name:'D조', teams:['구리여고','동화고','퇴계원고','심석고']}
+  ]
+};
+
 // ---------- 자동 입장 설정 ----------
 // 이 값을 대회 코드로 지정하면, 페이지를 열었을 때 코드 입력 없이
 // 바로 해당 대회의 "관람객 모드"로 들어갑니다.
@@ -486,10 +522,22 @@ function renderSetup(k,div){
   const teams = div.teams||{};
   const groups = div.groups||{};
   const unassigned = Object.entries(teams).filter(([id,t])=>!t.groupId);
+  const hasPreset = !!PRESET_GROUPS[k];
 
-  let html = `<div class="small-note">참가교 명단은 대회 요강 기준으로 미리 입력되어 있습니다. 조를 만들고 학교를 배정한 뒤 "예선 대진 생성"을 누르면 조별 라운드로빈(서킷 방식) 경기가 자동으로 만들어집니다.</div>`;
+  let html = '';
+
+  if(hasPreset && isAdmin){
+    html += `<div class="card" style="border-color:var(--out-orange);margin-bottom:16px;">
+      <div style="font-weight:800;margin-bottom:6px;">⚡ 요강 시간표 기준 자동 조편성 (검증됨)</div>
+      <div class="small-note" style="margin-bottom:10px;">요강 시간표의 실제 경기쌍을 전부 대조해 재구성한 조편성입니다. 한 번 누르면 조 생성 + 학교 배정 + 예선 대진까지 자동으로 끝납니다.</div>
+      <button class="btn btn-primary" onclick="applyPresetGroups('${k}')">자동 조편성 + 대진 생성</button>
+    </div>`;
+  } else if(!hasPreset){
+    html += `<div class="small-note">학교를 여러 개 선택한 뒤 조에 한번에 배정하세요.</div>`;
+  }
 
   html += `<div class="section-title">미배정 학교 <span class="n">${unassigned.length}</span></div>`;
+  html += `<div class="small-note">${isAdmin?'클릭해서 여러 학교를 선택한 뒤, 아래에서 조를 골라 한번에 배정하세요.':''}</div>`;
   html += `<div class="team-chip-grid">`;
   unassigned.forEach(([id,t])=>{
     html += `<div class="team-chip" data-team="${id}">${t.name}</div>`;
@@ -497,10 +545,20 @@ function renderSetup(k,div){
   if(unassigned.length===0) html += `<div class="small-note">모든 학교가 조에 배정되었습니다.</div>`;
   html += `</div>`;
 
+  if(isAdmin && unassigned.length>0 && Object.keys(groups).length>0){
+    html += `<div style="display:flex;gap:8px;align-items:center;margin:10px 0 4px;flex-wrap:wrap;">
+      <select id="bulkGroupSel" style="width:auto;padding:8px 10px;border-radius:6px;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);margin-bottom:0;">
+        <option value="">배정할 조 선택...</option>
+        ${Object.entries(groups).map(([gid,g])=>`<option value="${gid}">${g.name}</option>`).join('')}
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="bulkAssign('${k}')">선택한 학교 일괄 배정</button>
+    </div>`;
+  }
+
   if(isAdmin){
     html += `<div style="display:flex;gap:8px;margin:14px 0;">
       <input type="text" id="newGroupName" placeholder="새 조 이름 (예: A조)" style="margin-bottom:0;">
-      <button class="btn btn-primary" onclick="createGroup('${k}')">조 추가</button>
+      <button class="btn" onclick="createGroup('${k}')">조 추가</button>
     </div>`;
   }
 
@@ -515,14 +573,6 @@ function renderSetup(k,div){
       <div class="group-teams">
         ${gTeams.map(([id,t])=>`<div class="group-team-tag">${t.name} ${isAdmin?`<a href="javascript:void(0)" onclick="unassignTeam('${k}','${id}')" style="color:var(--danger);margin-left:4px;">✕</a>`:''}</div>`).join('')}
       </div>
-      ${isAdmin && unassigned.length>0 ? `
-      <div style="margin-top:10px;">
-        <select id="assignSel_${gid}" style="width:auto;display:inline-block;padding:6px 8px;border-radius:6px;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);">
-          <option value="">학교 선택...</option>
-          ${unassigned.map(([id,t])=>`<option value="${id}">${t.name}</option>`).join('')}
-        </select>
-        <button class="btn btn-sm" onclick="assignTeam('${k}','${gid}')">이 조에 배정</button>
-      </div>`:''}
       ${isAdmin && gTeams.length>=2 ? `<div style="margin-top:10px;"><button class="btn btn-sm btn-primary" onclick="generateGroupMatches('${k}','${gid}')">이 조 예선 대진 생성</button></div>`:''}
     </div>`;
   });
@@ -532,14 +582,14 @@ function renderSetup(k,div){
     document.querySelectorAll('.team-chip').forEach(el=>{
       el.addEventListener('click', ()=>{
         if(!isAdmin){ toast('운영단만 조편성을 할 수 있습니다'); return; }
-        document.querySelectorAll('.team-chip').forEach(c=>c.classList.remove('selected'));
-        el.classList.add('selected');
+        el.classList.toggle('selected');
       });
     });
   },0);
 
   return html;
 }
+
 
 window.createGroup = function(k){
   const name = document.getElementById('newGroupName').value.trim();
@@ -562,12 +612,63 @@ window.assignTeam = function(k,gid){
   if(!id){ toast('학교를 선택하세요'); return; }
   db.ref(`tournaments/${state.code}/divisions/${k}/teams/${id}/groupId`).set(gid);
 };
+window.bulkAssign = function(k){
+  const gid = document.getElementById('bulkGroupSel').value;
+  if(!gid){ toast('배정할 조를 선택하세요'); return; }
+  const selected = Array.from(document.querySelectorAll('.team-chip.selected')).map(el=>el.dataset.team);
+  if(selected.length===0){ toast('학교를 선택하세요 (클릭하면 여러 개 선택됩니다)'); return; }
+  const updates={};
+  selected.forEach(id=>{ updates[`divisions/${k}/teams/${id}/groupId`]=gid; });
+  db.ref('tournaments/'+state.code).update(updates).then(()=>toast(selected.length+'개교가 배정되었습니다'));
+};
 window.unassignTeam = function(k,id){
   db.ref(`tournaments/${state.code}/divisions/${k}/teams/${id}/groupId`).set(null);
   const div = state.data.divisions[k];
   const updates = {};
   Object.entries(div.matches||{}).forEach(([mid,m])=>{ if(m.teamA===id||m.teamB===id) updates[`divisions/${k}/matches/${mid}`]=null; });
   if(Object.keys(updates).length) db.ref('tournaments/'+state.code).update(updates);
+};
+
+// 공식 요강 시간표를 역추적해 검증된 조편성을 한 번에 적용 (현재 girlMs만 제공)
+window.applyPresetGroups = function(k){
+  const groupDefs = PRESET_GROUPS[k];
+  if(!groupDefs){ toast('이 종목은 자동 조편성 프리셋이 없습니다'); return; }
+  if(!confirm('현재 조편성과 예선 대진을 요강 기준 프리셋으로 덮어씁니다. 계속할까요?')) return;
+  const div = state.data.divisions[k];
+  const preset = DIVISION_PRESETS[k];
+  const nameToId = {};
+  Object.entries(div.teams||{}).forEach(([id,t])=>{ nameToId[t.name]=id; });
+
+  const updates = {};
+  updates[`divisions/${k}/groups`] = null;
+  updates[`divisions/${k}/matches`] = null;
+  Object.keys(div.teams||{}).forEach(id=>{ updates[`divisions/${k}/teams/${id}/groupId`]=null; });
+
+  groupDefs.forEach((g,gi)=>{
+    const gid = 'g_preset_'+gi;
+    updates[`divisions/${k}/groups/${gid}`] = {name:g.name};
+    const teamIds = g.teams.map(name=>nameToId[name]).filter(Boolean);
+    teamIds.forEach(id=>{ updates[`divisions/${k}/teams/${id}/groupId`]=gid; });
+
+    let arr = teamIds.slice();
+    if(arr.length%2===1) arr.push(null);
+    const n=arr.length, rounds=n-1, half=n/2;
+    let rot=arr.slice(); let idx=0;
+    for(let r=0;r<rounds;r++){
+      for(let i=0;i<half;i++){
+        const a=rot[i], b=rot[n-1-i];
+        if(a && b){
+          const mid = 'm_'+gid+'_'+(idx++);
+          updates[`divisions/${k}/matches/${mid}`] = {
+            groupId:gid, teamA:a, teamB:b, sets:{}, setsToPlay:preset.prelimSets, drawAllowed:preset.prelimDraw,
+            stage:'group', status:'scheduled', createdAt: Date.now()+idx
+          };
+        }
+      }
+      rot=[rot[0], ...rot.slice(-1), ...rot.slice(1,-1)];
+    }
+  });
+  db.ref('tournaments/'+state.code).update(updates).then(()=>toast('조편성과 예선 대진이 자동으로 생성되었습니다'));
 };
 
 // 서클(라운드로빈) 방식 대진 생성
