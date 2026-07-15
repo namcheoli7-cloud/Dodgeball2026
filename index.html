@@ -219,33 +219,33 @@ const DIVISION_ORDER = ["boyEl","girlEl","girlMs","girlHs"];
 // 정확히 재구성되어 프리셋으로 제공합니다.
 const PRESET_GROUPS = {
   boyEl: [
-    {name:'남A', teams:['다산하늘초','남양주송라초','다산새봄초','금교초']},
-    {name:'남B', teams:['장승초','남양주다산초','창현초','평내초']}
+    {name:'남초A', teams:['다산하늘초','남양주송라초','다산새봄초','금교초']},
+    {name:'남초B', teams:['장승초','남양주다산초','창현초','평내초']}
   ],
   girlEl: [
-    {name:'여A', teams:['남양주양정초','장승초','창현초']},
-    {name:'여B', teams:['장내초','남양주다산초','남양주백봉초']},
-    {name:'여C', teams:['주곡초','부양초','다산새봄초']},
-    {name:'여D', teams:['토평초','진접초','다산가람초']},
-    {name:'여E', teams:['다산하늘초','양오초','남양주미금초']},
-    {name:'여F', teams:['해밀초','남양주송라초','금교초']},
-    {name:'여G', teams:['장자초','화봉초']}
+    {name:'여초A', teams:['남양주양정초','장승초','창현초']},
+    {name:'여초B', teams:['장내초','남양주다산초','남양주백봉초']},
+    {name:'여초C', teams:['주곡초','부양초','다산새봄초']},
+    {name:'여초D', teams:['토평초','진접초','다산가람초']},
+    {name:'여초E', teams:['다산하늘초','양오초','남양주미금초']},
+    {name:'여초F', teams:['해밀초','남양주송라초','금교초']},
+    {name:'여초G', teams:['장자초','화봉초']}
   ],
   girlMs: [
-    {name:'1조', teams:['구리여중','진접중','가운중']},
-    {name:'2조', teams:['퇴계원중','장내중','갈매중','미금중']},
-    {name:'3조', teams:['오남중','예봉중','송라중','풍양중']},
-    {name:'4조', teams:['덕소중','광동중','도농중','하랑중']},
-    {name:'5조', teams:['동구중','마석중','화접중','장자중']},
-    {name:'6조', teams:['다산한강중','양오중','인창중','와부중']},
-    {name:'7조', teams:['판곡중','별가람중','교문중','진건중']},
-    {name:'8조', teams:['다산새봄중','평내중','호평중','어람중']}
+    {name:'여중A', teams:['구리여중','진접중','가운중']},
+    {name:'여중B', teams:['퇴계원중','장내중','갈매중','미금중']},
+    {name:'여중C', teams:['오남중','예봉중','송라중','풍양중']},
+    {name:'여중D', teams:['덕소중','광동중','도농중','하랑중']},
+    {name:'여중E', teams:['동구중','마석중','화접중','장자중']},
+    {name:'여중F', teams:['다산한강중','양오중','인창중','와부중']},
+    {name:'여중G', teams:['판곡중','별가람중','교문중','진건중']},
+    {name:'여중H', teams:['다산새봄중','평내중','호평중','어람중']}
   ],
   girlHs: [
-    {name:'A조', teams:['광동고','덕소고','도농고','인창고']},
-    {name:'B조', teams:['평내고','수택고','오남고','와부고']},
-    {name:'C조', teams:['진건고','남양주다산고','가운고','진접고']},
-    {name:'D조', teams:['구리여고','동화고','퇴계원고','심석고']}
+    {name:'여고A', teams:['광동고','덕소고','도농고','인창고']},
+    {name:'여고B', teams:['평내고','수택고','오남고','와부고']},
+    {name:'여고C', teams:['진건고','남양주다산고','가운고','진접고']},
+    {name:'여고D', teams:['구리여고','동화고','퇴계원고','심석고']}
   ]
 };
 
@@ -254,39 +254,39 @@ const PRESET_GROUPS = {
 // (자동 서킷 생성 대신) 여기 없는 조만 라운드로빈으로 자동 생성합니다.
 const PRESET_MATCHES = {
   boyEl: {
-    '남A': [
+    '남초A': [
       ['다산하늘초','남양주송라초','09:30'], ['다산새봄초','다산하늘초','09:45'], ['남양주송라초','다산새봄초','10:00'],
       ['금교초','다산새봄초','10:15'], ['금교초','다산하늘초','10:30'], ['남양주송라초','금교초','10:45']
     ],
-    '남B': [
+    '남초B': [
       ['장승초','남양주다산초','11:00'], ['창현초','평내초','11:15'], ['남양주다산초','창현초','11:30'],
       ['평내초','장승초','11:45'], ['남양주다산초','평내초','12:00'], ['장승초','창현초','12:00']
     ]
   },
   girlEl: {
-    '여A': [ ['남양주양정초','장승초','09:30'], ['장승초','창현초','09:45'], ['창현초','남양주양정초','10:00'] ],
-    '여B': [ ['장내초','남양주다산초','10:15'], ['남양주다산초','남양주백봉초','10:30'], ['남양주백봉초','장내초','10:45'] ],
-    '여C': [ ['주곡초','부양초','11:00'], ['부양초','다산새봄초','11:15'], ['다산새봄초','주곡초','11:30'] ],
-    '여D': [ ['토평초','진접초','09:30'], ['진접초','다산가람초','09:45'], ['다산가람초','토평초','10:00'] ],
-    '여E': [ ['다산하늘초','양오초','10:15'], ['양오초','남양주미금초','10:30'], ['남양주미금초','다산하늘초','10:45'] ],
-    '여F': [ ['해밀초','남양주송라초','11:00'], ['남양주송라초','금교초','11:15'], ['금교초','해밀초','11:30'] ],
-    '여G': [ ['장자초','화봉초','11:45'] ]
+    '여초A': [ ['남양주양정초','장승초','09:30'], ['장승초','창현초','09:45'], ['창현초','남양주양정초','10:00'] ],
+    '여초B': [ ['장내초','남양주다산초','10:15'], ['남양주다산초','남양주백봉초','10:30'], ['남양주백봉초','장내초','10:45'] ],
+    '여초C': [ ['주곡초','부양초','11:00'], ['부양초','다산새봄초','11:15'], ['다산새봄초','주곡초','11:30'] ],
+    '여초D': [ ['토평초','진접초','09:30'], ['진접초','다산가람초','09:45'], ['다산가람초','토평초','10:00'] ],
+    '여초E': [ ['다산하늘초','양오초','10:15'], ['양오초','남양주미금초','10:30'], ['남양주미금초','다산하늘초','10:45'] ],
+    '여초F': [ ['해밀초','남양주송라초','11:00'], ['남양주송라초','금교초','11:15'], ['금교초','해밀초','11:30'] ],
+    '여초G': [ ['장자초','화봉초','11:45'] ]
   },
   girlMs: {
-    '1조': [ ['구리여중','진접중','9:15'], ['진접중','가운중','10:00'], ['구리여중','가운중','10:45'] ],
-    '2조': [ ['퇴계원중','장내중','9:15'], ['갈매중','미금중','10:00'], ['퇴계원중','갈매중','10:45'], ['장내중','미금중','11:30'], ['퇴계원중','미금중','12:30'], ['장내중','갈매중','12:45'] ],
-    '3조': [ ['오남중','예봉중','9:15'], ['송라중','풍양중','9:45'], ['오남중','송라중','10:15'], ['예봉중','풍양중','10:45'], ['오남중','풍양중','11:15'], ['예봉중','송라중','11:45'] ],
-    '4조': [ ['덕소중','광동중','9:30'], ['도농중','하랑중','10:15'], ['덕소중','도농중','11:00'], ['광동중','하랑중','11:30'], ['덕소중','하랑중','12:00'], ['광동중','도농중','12:15'] ],
-    '5조': [ ['동구중','마석중','9:30'], ['화접중','장자중','10:15'], ['동구중','화접중','11:00'], ['마석중','장자중','11:45'], ['동구중','장자중','12:30'], ['마석중','화접중','12:45'] ],
-    '6조': [ ['다산한강중','양오중','9:30'], ['인창중','와부중','10:00'], ['다산한강중','인창중','10:30'], ['양오중','와부중','11:00'], ['다산한강중','와부중','11:30'], ['양오중','인창중','12:00'] ],
-    '7조': [ ['판곡중','별가람중','9:45'], ['교문중','진건중','10:30'], ['판곡중','교문중','11:15'], ['별가람중','진건중','11:45'], ['판곡중','진건중','12:15'], ['별가람중','교문중','12:15'] ],
-    '8조': [ ['다산새봄중','평내중','9:45'], ['호평중','어람중','10:30'], ['다산새봄중','호평중','11:15'], ['평내중','어람중','12:00'], ['다산새봄중','어람중','12:30'], ['평내중','호평중','12:45'] ]
+    '여중A': [ ['구리여중','진접중','9:15'], ['진접중','가운중','10:00'], ['구리여중','가운중','10:45'] ],
+    '여중B': [ ['퇴계원중','장내중','9:15'], ['갈매중','미금중','10:00'], ['퇴계원중','갈매중','10:45'], ['장내중','미금중','11:30'], ['퇴계원중','미금중','12:30'], ['장내중','갈매중','12:45'] ],
+    '여중C': [ ['오남중','예봉중','9:15'], ['송라중','풍양중','9:45'], ['오남중','송라중','10:15'], ['예봉중','풍양중','10:45'], ['오남중','풍양중','11:15'], ['예봉중','송라중','11:45'] ],
+    '여중D': [ ['덕소중','광동중','9:30'], ['도농중','하랑중','10:15'], ['덕소중','도농중','11:00'], ['광동중','하랑중','11:30'], ['덕소중','하랑중','12:00'], ['광동중','도농중','12:15'] ],
+    '여중E': [ ['동구중','마석중','9:30'], ['화접중','장자중','10:15'], ['동구중','화접중','11:00'], ['마석중','장자중','11:45'], ['동구중','장자중','12:30'], ['마석중','화접중','12:45'] ],
+    '여중F': [ ['다산한강중','양오중','9:30'], ['인창중','와부중','10:00'], ['다산한강중','인창중','10:30'], ['양오중','와부중','11:00'], ['다산한강중','와부중','11:30'], ['양오중','인창중','12:00'] ],
+    '여중G': [ ['판곡중','별가람중','9:45'], ['교문중','진건중','10:30'], ['판곡중','교문중','11:15'], ['별가람중','진건중','11:45'], ['판곡중','진건중','12:15'], ['별가람중','교문중','12:15'] ],
+    '여중H': [ ['다산새봄중','평내중','9:45'], ['호평중','어람중','10:30'], ['다산새봄중','호평중','11:15'], ['평내중','어람중','12:00'], ['다산새봄중','어람중','12:30'], ['평내중','호평중','12:45'] ]
   },
   girlHs: {
-    'A조': [ ['광동고','덕소고'], ['도농고','인창고'], ['광동고','도농고'], ['덕소고','인창고'], ['광동고','인창고'], ['덕소고','도농고'] ],
-    'B조': [ ['평내고','수택고'], ['오남고','와부고'], ['평내고','오남고'], ['수택고','와부고'], ['평내고','와부고'], ['수택고','오남고'] ],
-    'C조': [ ['진건고','남양주다산고'], ['진접고','가운고'], ['진건고','가운고'], ['진건고','진접고'], ['남양주다산고','진접고'], ['남양주다산고','가운고'] ],
-    'D조': [ ['구리여고','동화고'], ['심석고','퇴계원고'], ['구리여고','퇴계원고'], ['구리여고','심석고'], ['동화고','심석고'], ['동화고','퇴계원고'] ]
+    '여고A': [ ['광동고','덕소고'], ['도농고','인창고'], ['광동고','도농고'], ['덕소고','인창고'], ['광동고','인창고'], ['덕소고','도농고'] ],
+    '여고B': [ ['평내고','수택고'], ['오남고','와부고'], ['평내고','오남고'], ['수택고','와부고'], ['평내고','와부고'], ['수택고','오남고'] ],
+    '여고C': [ ['진건고','남양주다산고'], ['진접고','가운고'], ['진건고','가운고'], ['진건고','진접고'], ['남양주다산고','진접고'], ['남양주다산고','가운고'] ],
+    '여고D': [ ['구리여고','동화고'], ['심석고','퇴계원고'], ['구리여고','퇴계원고'], ['구리여고','심석고'], ['동화고','심석고'], ['동화고','퇴계원고'] ]
   }
 };
 // 대회 데이터를 저장할 내부 식별자입니다. 화면에는 노출되지 않습니다.
@@ -516,18 +516,32 @@ function renderSetup(k,div){
 
   let html = '';
 
-  if(hasPreset && isAdmin){
+  if(!isAdmin){
+    // 참관모드: 편성된 조와 소속 학교만 깔끔하게 보여줌
+    html += `<div class="section-title">조편성</div>`;
+    Object.entries(groups).forEach(([gid,g])=>{
+      const gTeams = Object.entries(teams).filter(([id,t])=>t.groupId===gid);
+      html += `<div class="group-card">
+        <div class="ghead"><div class="gname">${g.name}</div></div>
+        <div class="group-teams">${gTeams.map(([id,t])=>`<div class="group-team-tag">${t.name}</div>`).join('')}</div>
+      </div>`;
+    });
+    if(Object.keys(groups).length===0) html += `<div class="small-note">아직 편성된 조가 없습니다.</div>`;
+    return html;
+  }
+
+  if(hasPreset){
     html += `<div class="card" style="border-color:var(--out-orange);margin-bottom:16px;">
       <div style="font-weight:800;margin-bottom:6px;">⚡ 요강 기준 조편성 (자동 완료됨)</div>
       <div class="small-note" style="margin-bottom:10px;">대회 생성 시 요강 시간표를 그대로 반영해 조편성과 예선 대진이 이미 만들어져 있습니다. 실수로 잘못 바꿨거나 초기화가 필요하면 아래 버튼으로 다시 불러올 수 있습니다.</div>
       <button class="btn" onclick="applyPresetGroups('${k}')">요강 기준으로 다시 불러오기</button>
     </div>`;
-  } else if(!hasPreset){
+  } else {
     html += `<div class="small-note">학교를 여러 개 선택한 뒤 조에 한번에 배정하세요.</div>`;
   }
 
   html += `<div class="section-title">미배정 학교 <span class="n">${unassigned.length}</span></div>`;
-  html += `<div class="small-note">${isAdmin?'클릭해서 여러 학교를 선택한 뒤, 아래에서 조를 골라 한번에 배정하세요.':''}</div>`;
+  html += `<div class="small-note">클릭해서 여러 학교를 선택한 뒤, 아래에서 조를 골라 한번에 배정하세요.</div>`;
   html += `<div class="team-chip-grid">`;
   unassigned.forEach(([id,t])=>{
     html += `<div class="team-chip" data-team="${id}">${t.name}</div>`;
@@ -535,7 +549,7 @@ function renderSetup(k,div){
   if(unassigned.length===0) html += `<div class="small-note">모든 학교가 조에 배정되었습니다.</div>`;
   html += `</div>`;
 
-  if(isAdmin && unassigned.length>0 && Object.keys(groups).length>0){
+  if(unassigned.length>0 && Object.keys(groups).length>0){
     html += `<div style="display:flex;gap:8px;align-items:center;margin:10px 0 4px;flex-wrap:wrap;">
       <select id="bulkGroupSel" style="width:auto;padding:8px 10px;border-radius:6px;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);margin-bottom:0;">
         <option value="">배정할 조 선택...</option>
@@ -545,12 +559,10 @@ function renderSetup(k,div){
     </div>`;
   }
 
-  if(isAdmin){
-    html += `<div style="display:flex;gap:8px;margin:14px 0;">
-      <input type="text" id="newGroupName" placeholder="새 조 이름 (예: A조)" style="margin-bottom:0;">
-      <button class="btn" onclick="createGroup('${k}')">조 추가</button>
-    </div>`;
-  }
+  html += `<div style="display:flex;gap:8px;margin:14px 0;">
+    <input type="text" id="newGroupName" placeholder="새 조 이름 (예: 남초C)" style="margin-bottom:0;">
+    <button class="btn" onclick="createGroup('${k}')">조 추가</button>
+  </div>`;
 
   html += `<div class="section-title">편성된 조 <span class="n">${Object.keys(groups).length}</span></div>`;
   Object.entries(groups).forEach(([gid,g])=>{
@@ -558,12 +570,12 @@ function renderSetup(k,div){
     html += `<div class="group-card">
       <div class="ghead">
         <div class="gname">${g.name} <span style="color:var(--chalk-dim);font-weight:400;font-size:12px;">(${gTeams.length}팀)</span></div>
-        ${isAdmin?`<button class="btn btn-ghost btn-sm" onclick="deleteGroup('${k}','${gid}')">조 삭제</button>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="deleteGroup('${k}','${gid}')">조 삭제</button>
       </div>
       <div class="group-teams">
-        ${gTeams.map(([id,t])=>`<div class="group-team-tag">${t.name} ${isAdmin?`<a href="javascript:void(0)" onclick="unassignTeam('${k}','${id}')" style="color:var(--danger);margin-left:4px;">✕</a>`:''}</div>`).join('')}
+        ${gTeams.map(([id,t])=>`<div class="group-team-tag">${t.name} <a href="javascript:void(0)" onclick="unassignTeam('${k}','${id}')" style="color:var(--danger);margin-left:4px;">✕</a></div>`).join('')}
       </div>
-      ${isAdmin && gTeams.length>=2 ? `<div style="margin-top:10px;"><button class="btn btn-sm btn-primary" onclick="generateGroupMatches('${k}','${gid}')">이 조 예선 대진 생성</button></div>`:''}
+      ${gTeams.length>=2 ? `<div style="margin-top:10px;"><button class="btn btn-sm btn-primary" onclick="generateGroupMatches('${k}','${gid}')">이 조 예선 대진 생성</button></div>`:''}
     </div>`;
   });
   if(Object.keys(groups).length===0) html += `<div class="small-note">아직 편성된 조가 없습니다.</div>`;
@@ -571,7 +583,6 @@ function renderSetup(k,div){
   setTimeout(()=>{
     document.querySelectorAll('.team-chip').forEach(el=>{
       el.addEventListener('click', ()=>{
-        if(!isAdmin){ toast('운영단만 조편성을 할 수 있습니다'); return; }
         el.classList.toggle('selected');
       });
     });
@@ -749,24 +760,6 @@ function renderMatchCard(k,mid,m,div){
   return html;
 }
 
-window.setSetResult = function(k,mid,setIdx,winner){
-  db.ref(`tournaments/${state.code}/divisions/${k}/matches/${mid}/sets/${setIdx}`).set(winner)
-    .then(()=>{ checkBracketAdvance(k,mid); });
-};
-window.resetMatch = function(k,mid){
-  db.ref(`tournaments/${state.code}/divisions/${k}/matches/${mid}/sets`).set(null);
-};
-window.forceWinner = function(k,mid,winner){
-  // 연장전/골든볼: 추가 세트 슬롯을 강제로 채움
-  const div = state.data.divisions[k];
-  const m = div.matches[mid];
-  db.ref(`tournaments/${state.code}/divisions/${k}/matches/${mid}/sets/${m.setsToPlay}`).set(winner)
-    .then(()=>{
-      db.ref(`tournaments/${state.code}/divisions/${k}/matches/${mid}/setsToPlay`).set(m.setsToPlay+1);
-      setTimeout(()=>checkBracketAdvance(k,mid),300);
-    });
-};
-
 // ============================================================
 // 3) 순위표
 // ============================================================
@@ -809,7 +802,7 @@ function renderStandings(k,div){
   const groups = div.groups||{};
   if(Object.keys(groups).length===0) return `<div class="empty-state"><div class="big">📊</div>조를 먼저 편성하세요.</div>`;
   const preset = DIVISION_PRESETS[k];
-  let html = `<div class="small-note">승점(승3·무1·패0) → 세트득실 → 승자승 순으로 자동 정렬됩니다. 동률 3순위(연장/골든볼)는 아래 버튼으로 직접 조정하세요.</div>`;
+  let html = `<div class="small-note">승점(승3·무1·패0) → 세트득실 → 승자승 순으로 자동 정렬됩니다.${state.role==='admin'?' 동률 3순위(연장/골든볼)는 아래 버튼으로 직접 조정하세요.':''}</div>`;
   Object.entries(groups).forEach(([gid,g])=>{
     const rows = computeStandings(k,div,gid);
     if(rows.length===0) return;
@@ -876,64 +869,6 @@ function getAdvancingTeams(k,div){
 
 function nextPow2(n){ let p=1; while(p<n) p*=2; return p; }
 
-window.generateBracket = function(k){
-  const div = state.data.divisions[k];
-  const preset = DIVISION_PRESETS[k];
-  const advancers = getAdvancingTeams(k,div);
-  if(advancers.length<2){ toast('진출 팀이 2팀 이상 필요합니다'); return; }
-  // 시드 배치: 각 조 1위들을 먼저 벌려 배치, 그 다음 2위들
-  const firsts = advancers.filter(a=>a.rank===1);
-  const seconds = advancers.filter(a=>a.rank===2);
-  const seeded = [...firsts, ...seconds];
-  const size = nextPow2(seeded.length);
-  const slots = new Array(size).fill(null);
-  // 표준 시드 배치(1번, 마지막, ...)로 동조 매치 최대한 회피
-  const order = seedOrder(size);
-  seeded.forEach((team,i)=>{ slots[order[i]] = team; });
-
-  const totalRounds = Math.log2(size);
-  const bracket = {rounds:{}};
-  let roundTeams = slots;
-  for(let r=0;r<totalRounds;r++){
-    const roundMatches = {};
-    const nextRoundTeams = [];
-    for(let i=0;i<roundTeams.length;i+=2){
-      const a = roundTeams[i], b = roundTeams[i+1];
-      const mid = 'b'+r+'_'+(i/2);
-      let setsToPlay = preset.bracketSets;
-      let drawAllowed = preset.bracketDraw;
-      if(r===totalRounds-1 && preset.finalSets){ setsToPlay=preset.finalSets; drawAllowed=preset.finalDraw; }
-      roundMatches[mid] = {
-        teamA: a?a.id:null, teamB: b?b.id:null,
-        sets:{}, setsToPlay, drawAllowed,
-        stage:'bracket', roundIdx:r, roundLabel: roundLabelName(r,totalRounds),
-        status: (a&&!b)?'bye':(!a&&!b)?'empty':'scheduled'
-      };
-      // 부전승 자동 처리
-      if(a && !b) nextRoundTeams.push(a);
-      else if(b && !a) nextRoundTeams.push(b);
-      else nextRoundTeams.push(null);
-    }
-    bracket.rounds[r] = roundMatches;
-    roundTeams = nextRoundTeams;
-  }
-  const updates = {};
-  updates[`divisions/${k}/bracket`] = bracket;
-  updates[`divisions/${k}/bracketLocked`] = true;
-  db.ref('tournaments/'+state.code).update(updates).then(()=>toast('본선 대진이 생성되었습니다'));
-};
-
-function seedOrder(size){
-  // 표준 토너먼트 시드 순서 생성 (1 vs size, 등)
-  let seeds=[1,2];
-  while(seeds.length<size){
-    const s2 = seeds.length*2;
-    const newSeeds=[];
-    seeds.forEach(s=>{ newSeeds.push(s); newSeeds.push(s2+1-s); });
-    seeds = newSeeds;
-  }
-  return seeds.map(s=>s-1);
-}
 function roundLabelName(r,total){
   const remaining = total-r;
   if(remaining===1) return '결승';
@@ -943,57 +878,143 @@ function roundLabelName(r,total){
   return remaining+'강';
 }
 
+// 운영단이 직접 팀을 배치하는 빈 대진표 생성 (자동 시드 없음)
+window.promptCreateBracket = function(k){
+  const div = state.data.divisions[k];
+  const suggested = Math.max(2, getAdvancingTeams(k,div).length);
+  const input = prompt('본선 대진표에 몇 팀이 들어가나요? (부전승 포함, 예: 8, 14, 16)', suggested);
+  if(input===null) return;
+  const n = parseInt(input);
+  if(!n || n<2){ toast('2 이상의 숫자를 입력하세요'); return; }
+  const size = nextPow2(n);
+  const totalRounds = Math.log2(size);
+  const preset = DIVISION_PRESETS[k];
+  const bracket = {rounds:{}};
+  for(let r=0;r<totalRounds;r++){
+    const roundMatches = {};
+    const matchCount = size/Math.pow(2,r+1);
+    let setsToPlay = preset.bracketSets, drawAllowed = preset.bracketDraw;
+    if(r===totalRounds-1 && preset.finalSets){ setsToPlay=preset.finalSets; drawAllowed=preset.finalDraw; }
+    for(let i=0;i<matchCount;i++){
+      const mid = 'b'+r+'_'+i;
+      roundMatches[mid] = {
+        teamA:null, teamB:null, sets:{}, setsToPlay, drawAllowed, court:null,
+        stage:'bracket', roundIdx:r, roundLabel: roundLabelName(r,totalRounds), status:'scheduled'
+      };
+    }
+    bracket.rounds[r] = roundMatches;
+  }
+  const updates = {};
+  updates[`divisions/${k}/bracket`] = bracket;
+  updates[`divisions/${k}/bracketLocked`] = true;
+  db.ref('tournaments/'+state.code).update(updates).then(()=>toast('빈 대진표가 만들어졌습니다. 1라운드부터 팀을 배치하세요.'));
+};
+
+function bracketTeamOptions(div){
+  return Object.entries(div.teams||{}).map(([id,t])=>{
+    const gName = (div.groups && t.groupId && div.groups[t.groupId]) ? div.groups[t.groupId].name : '';
+    return { id, label: t.name + (gName?` (${gName})`:'') };
+  }).sort((a,b)=>a.label.localeCompare(b.label,'ko'));
+}
+
+window.assignBracketSlot = function(k, roundIdx, mid, slot, teamId){
+  const path = `tournaments/${state.code}/divisions/${k}/bracket/rounds/${roundIdx}/${mid}/${slot}`;
+  db.ref(path).set(teamId || null);
+};
+
+window.setBracketCourt = function(k, roundIdx, mid, value){
+  db.ref(`tournaments/${state.code}/divisions/${k}/bracket/rounds/${roundIdx}/${mid}/court`).set(value || null);
+};
+
+window.byeAdvance = function(k, roundIdx, mid){
+  const div = state.data.divisions[k];
+  const m = div.bracket.rounds[roundIdx][mid];
+  const winnerId = m.teamA || m.teamB;
+  if(!winnerId){ toast('배치된 팀이 없습니다'); return; }
+  if(!confirm('한 팀만 배치되어 있습니다. 이 팀을 부전승으로 다음 라운드에 올릴까요?')) return;
+  propagateBracketWinner(k, roundIdx, mid, winnerId);
+};
+
 function renderBracket(k,div){
   const complete = isGroupStageComplete(k,div);
   const hasBracket = div.bracket && div.bracket.rounds && Object.keys(div.bracket.rounds).length>0;
+  const isAdmin = state.role==='admin';
   let html='';
   if(!hasBracket){
+    if(!isAdmin){
+      html += `<div class="empty-state"><div class="big">🏆</div>아직 본선 대진표가 만들어지지 않았습니다.</div>`;
+      return html;
+    }
     if(!complete){
-      html += `<div class="empty-state"><div class="big">🏆</div>모든 조 예선 경기가 종료되면 본선 대진을 생성할 수 있습니다.</div>`;
+      html += `<div class="empty-state"><div class="big">🏆</div>모든 조 예선 경기가 종료되면 본선 대진표를 만들 수 있습니다.</div>`;
     } else {
       const advancers = getAdvancingTeams(k,div);
       html += `<div class="empty-state">
         <div class="big">🏆</div>
-        예선이 모두 종료되었습니다. 진출 ${advancers.length}팀으로 본선 대진을 생성하세요.
-        ${state.role==='admin'?`<div style="margin-top:14px;"><button class="btn btn-primary" onclick="generateBracket('${k}')">본선 대진 자동 생성</button></div>`:''}
+        예선이 모두 종료되었습니다 (진출 기준 ${advancers.length}팀). 대진표를 만들고 직접 팀을 배치하세요.
+        <div style="margin-top:14px;"><button class="btn btn-primary" onclick="promptCreateBracket('${k}')">본선 대진표 만들기</button></div>
       </div>`;
     }
     return html;
   }
   const rounds = div.bracket.rounds;
   const roundKeys = Object.keys(rounds).map(Number).sort((a,b)=>a-b);
+  const teamOptions = isAdmin ? bracketTeamOptions(div) : [];
   html += `<div class="bracket">`;
   roundKeys.forEach(rIdx=>{
     const matches = Object.entries(rounds[rIdx]);
     html += `<div class="bracket-round">
       <div class="bracket-round-title">${matches[0][1].roundLabel}</div>`;
     matches.forEach(([mid,m])=>{
-      const nameA = m.teamA? teamName(div,m.teamA) : 'TBD';
-      const nameB = m.teamB? teamName(div,m.teamB) : (m.status==='bye'?'(부전승)':'TBD');
+      const nameA = m.teamA? teamName(div,m.teamA) : null;
+      const nameB = m.teamB? teamName(div,m.teamB) : null;
       const sets = m.sets||{};
       const setCount = m.setsToPlay||3;
       let winsA=0,winsB=0;
       for(let i=0;i<setCount;i++){ if(sets[i]==='A')winsA++; if(sets[i]==='B')winsB++; }
-      const winner = winsA>winsB && winsA>Math.floor(setCount/2) ? 'A' : (winsB>winsA && winsB>Math.floor(setCount/2) ? 'B' : (m.status==='bye'&&m.teamA?'A':(m.status==='bye'&&m.teamB?'B':null)));
-      html += `<div class="bmatch">
-        <div class="bslot ${winner==='A'?'winner':''}">${nameA}</div>
-        <div class="bslot ${winner==='B'?'winner':''}">${nameB}</div>
-        ${state.role==='admin' && m.teamA && m.teamB ? `<div style="margin-top:6px;"><button class="btn btn-sm btn-block" onclick="openBracketMatch('${k}','${mid}')">경기 결과 입력</button></div>`:''}
-      </div>`;
+      const winner = winsA>winsB && winsA>Math.floor(setCount/2) ? 'A' : (winsB>winsA && winsB>Math.floor(setCount/2) ? 'B' : null);
+      const canEditSlots = isAdmin && rIdx===0; // 팀 배치는 1라운드에서만 직접 지정, 이후는 승자 자동 진출
+      html += `<div class="bmatch">`;
+      if(canEditSlots && !m.teamA){
+        html += `<select class="bslot-select" onchange="assignBracketSlot('${k}',${rIdx},'${mid}','teamA',this.value)" style="width:100%;margin-bottom:4px;padding:4px;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);border-radius:4px;font-size:12px;">
+          <option value="">팀 선택...</option>
+          ${teamOptions.map(t=>`<option value="${t.id}">${t.label}</option>`).join('')}
+        </select>`;
+      } else {
+        html += `<div class="bslot ${winner==='A'?'winner':''}">${nameA||'TBD'} ${canEditSlots?`<a href="javascript:void(0)" onclick="assignBracketSlot('${k}',${rIdx},'${mid}','teamA','')" style="color:var(--danger);float:right;">✕</a>`:''}</div>`;
+      }
+      if(canEditSlots && !m.teamB){
+        html += `<select class="bslot-select" onchange="assignBracketSlot('${k}',${rIdx},'${mid}','teamB',this.value)" style="width:100%;margin-bottom:4px;padding:4px;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);border-radius:4px;font-size:12px;">
+          <option value="">팀 선택...</option>
+          ${teamOptions.map(t=>`<option value="${t.id}">${t.label}</option>`).join('')}
+        </select>`;
+      } else {
+        html += `<div class="bslot ${winner==='B'?'winner':''}">${nameB||'TBD'} ${canEditSlots?`<a href="javascript:void(0)" onclick="assignBracketSlot('${k}',${rIdx},'${mid}','teamB','')" style="color:var(--danger);float:right;">✕</a>`:''}</div>`;
+      }
+      if(isAdmin){
+        html += `<input type="text" value="${m.court||''}" placeholder="코트" onchange="setBracketCourt('${k}',${rIdx},'${mid}',this.value)" style="width:100%;margin-top:6px;padding:4px 6px;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);border-radius:4px;font-size:12px;">`;
+      } else if(m.court){
+        html += `<div class="small-note" style="text-align:center;margin-top:4px;">코트 ${m.court}</div>`;
+      }
+      if(isAdmin && m.teamA && m.teamB){
+        html += `<div style="margin-top:6px;"><button class="btn btn-sm btn-block" onclick="openBracketMatch('${k}','${mid}')">경기 결과 입력</button></div>`;
+      } else if(isAdmin && (m.teamA||m.teamB) && !(m.teamA&&m.teamB) && rounds[rIdx+1]){
+        html += `<div style="margin-top:6px;"><button class="btn btn-sm btn-block btn-ghost" onclick="byeAdvance('${k}',${rIdx},'${mid}')">부전승으로 진출</button></div>`;
+      }
+      html += `</div>`;
     });
     html += `</div>`;
   });
   html += `</div>`;
-  if(state.role==='admin'){
-    html += `<div class="small-note">시드 배치가 마음에 들지 않으면 "본선 대진 자동 생성"을 다시 눌러 재생성할 수 있습니다(진행된 결과는 초기화됩니다).</div>
-    <button class="btn btn-ghost btn-sm" onclick="regenConfirm('${k}')">본선 대진 재생성</button>`;
+  if(isAdmin){
+    html += `<button class="btn btn-ghost btn-sm" onclick="regenConfirm('${k}')">대진표 초기화하고 새로 만들기</button>`;
   }
   html += `<div id="bracketMatchModal"></div>`;
   return html;
 }
 
 window.regenConfirm = function(k){
-  if(confirm('본선 대진을 다시 생성하면 입력된 본선 결과가 모두 사라집니다. 계속할까요?')) generateBracket(k);
+  if(confirm('본선 대진표를 초기화하면 배치된 팀과 결과가 모두 사라집니다. 계속할까요?')) promptCreateBracket(k);
 };
 
 window.openBracketMatch = function(k,mid){
@@ -1013,7 +1034,6 @@ window.openBracketMatch = function(k,mid){
 };
 
 // setSetResult / forceWinner / resetMatch 는 그룹경기와 본선경기 mid 포맷이 다르므로 분기
-const _origSetSetResult = window.setSetResult;
 window.setSetResult = function(k,mid,setIdx,winner){
   if(mid.startsWith('BRACKET:')){
     const [,roundIdx,realMid] = mid.split(':');
@@ -1058,19 +1078,21 @@ function refreshBracketModal(k,mid){
     if(host) host.innerHTML = renderMatchCard(k, mid, m, div);
   },200);
 }
-function checkBracketAdvance(k,mid){ /* placeholder for group-stage hook, standings recompute automatically on render */ }
 
-function propagateBracketWinner(k,roundIdx,mid){
+function propagateBracketWinner(k,roundIdx,mid,forcedWinnerId){
   const div = state.data.divisions[k];
   const rounds = div.bracket.rounds;
   const m = rounds[roundIdx][mid];
-  const setCount = m.setsToPlay||3;
-  const sets = m.sets||{};
-  let winsA=0,winsB=0,played=0;
-  for(let i=0;i<setCount;i++){ if(sets[i]){played++; if(sets[i]==='A')winsA++; else winsB++;} }
-  const decided = !m.drawAllowed ? (winsA>Math.floor(setCount/2)||winsB>Math.floor(setCount/2)) : (played===setCount && winsA!==winsB);
-  if(!decided) return;
-  const winnerId = winsA>winsB ? m.teamA : m.teamB;
+  let winnerId = forcedWinnerId;
+  if(!winnerId){
+    const setCount = m.setsToPlay||3;
+    const sets = m.sets||{};
+    let winsA=0,winsB=0,played=0;
+    for(let i=0;i<setCount;i++){ if(sets[i]){played++; if(sets[i]==='A')winsA++; else winsB++;} }
+    const decided = !m.drawAllowed ? (winsA>Math.floor(setCount/2)||winsB>Math.floor(setCount/2)) : (played===setCount && winsA!==winsB);
+    if(!decided) return;
+    winnerId = winsA>winsB ? m.teamA : m.teamB;
+  }
   const nextRoundIdx = parseInt(roundIdx)+1;
   if(!rounds[nextRoundIdx]) return; // 결승이었음
   const idxInRound = parseInt(mid.split('_')[1]);
