@@ -936,7 +936,6 @@ window.byeAdvance = function(k, roundIdx, mid){
 };
 
 function renderBracket(k,div){
-  const complete = isGroupStageComplete(k,div);
   const hasBracket = div.bracket && div.bracket.rounds && Object.keys(div.bracket.rounds).length>0;
   const isAdmin = state.role==='admin';
   let html='';
@@ -945,16 +944,12 @@ function renderBracket(k,div){
       html += `<div class="empty-state"><div class="big">🏆</div>아직 본선 대진표가 만들어지지 않았습니다.</div>`;
       return html;
     }
-    if(!complete){
-      html += `<div class="empty-state"><div class="big">🏆</div>모든 조 예선 경기가 종료되면 본선 대진표를 만들 수 있습니다.</div>`;
-    } else {
-      const advancers = getAdvancingTeams(k,div);
-      html += `<div class="empty-state">
-        <div class="big">🏆</div>
-        예선이 모두 종료되었습니다 (진출 기준 ${advancers.length}팀). 대진표를 만들고 직접 팀을 배치하세요.
-        <div style="margin-top:14px;"><button class="btn btn-primary" onclick="promptCreateBracket('${k}')">본선 대진표 만들기</button></div>
-      </div>`;
-    }
+    const advancers = getAdvancingTeams(k,div);
+    html += `<div class="empty-state">
+      <div class="big">🏆</div>
+      대진표를 만들고 직접 팀을 배치하세요. (예선 진행 상황과 상관없이 언제든 만들 수 있습니다${advancers.length?`, 현재 예선 기준 진출 예상 ${advancers.length}팀`:''})
+      <div style="margin-top:14px;"><button class="btn btn-primary" onclick="promptCreateBracket('${k}')">본선 대진표 만들기</button></div>
+    </div>`;
     return html;
   }
   const rounds = div.bracket.rounds;
