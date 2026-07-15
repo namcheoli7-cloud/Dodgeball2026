@@ -121,7 +121,9 @@ input[type=text]:focus,input[type=password]:focus{outline:2px solid var(--out-or
 table.standings{width:100%;border-collapse:collapse;font-size:14.5px;}
 table.standings th{text-align:left;color:var(--chalk-dim);font-weight:700;font-size:12px;padding:8px 8px;border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:0.04em;}
 table.standings td{padding:8px;border-bottom:1px solid var(--line);}
-table.standings tr.advance td{background:rgba(62,207,142,0.06);}
+table.standings tr.advance td{background:rgba(62,207,142,0.16);border-top:1.5px solid rgba(62,207,142,0.5);border-bottom:1.5px solid rgba(62,207,142,0.5);}
+table.standings tr.advance td:first-child{border-left:3px solid var(--in-green);}
+table.standings tr.advance td:nth-child(2){color:var(--in-green);font-weight:700;}
 table.standings td.rank{color:var(--out-orange);font-weight:800;width:26px;}
 .reorder-btns{display:flex;gap:2px;}
 .reorder-btns button{padding:2px 6px;font-size:10px;}
@@ -261,32 +263,32 @@ const PRESET_GROUPS = {
 const PRESET_MATCHES = {
   boyEl: {
     '남초A': [
-      ['다산하늘초','남양주송라초','09:30'], ['다산새봄초','다산하늘초','09:45'], ['남양주송라초','다산새봄초','10:00'],
-      ['금교초','다산새봄초','10:15'], ['금교초','다산하늘초','10:30'], ['남양주송라초','금교초','10:45']
+      ['다산하늘초','남양주송라초','09:30','3'], ['다산새봄초','다산하늘초','09:45','3'], ['남양주송라초','다산새봄초','10:00','3'],
+      ['금교초','다산새봄초','10:15','3'], ['금교초','다산하늘초','10:30','3'], ['남양주송라초','금교초','10:45','3']
     ],
     '남초B': [
-      ['장승초','남양주다산초','11:00'], ['창현초','평내초','11:15'], ['남양주다산초','창현초','11:30'],
-      ['평내초','장승초','11:45'], ['남양주다산초','평내초','12:00'], ['장승초','창현초','12:00']
+      ['장승초','남양주다산초','11:00','3'], ['창현초','평내초','11:15','3'], ['남양주다산초','창현초','11:30','3'],
+      ['평내초','장승초','11:45','3'], ['남양주다산초','평내초','12:00','3'], ['장승초','창현초','12:00','2']
     ]
   },
   girlEl: {
-    '여초A': [ ['남양주양정초','장승초','09:30'], ['장승초','창현초','09:45'], ['창현초','남양주양정초','10:00'] ],
-    '여초B': [ ['장내초','남양주다산초','10:15'], ['남양주다산초','남양주백봉초','10:30'], ['남양주백봉초','장내초','10:45'] ],
-    '여초C': [ ['주곡초','부양초','11:00'], ['부양초','다산새봄초','11:15'], ['다산새봄초','주곡초','11:30'] ],
-    '여초D': [ ['토평초','진접초','09:30'], ['진접초','다산가람초','09:45'], ['다산가람초','토평초','10:00'] ],
-    '여초E': [ ['다산하늘초','양오초','10:15'], ['양오초','남양주미금초','10:30'], ['남양주미금초','다산하늘초','10:45'] ],
-    '여초F': [ ['해밀초','남양주송라초','11:00'], ['남양주송라초','금교초','11:15'], ['금교초','해밀초','11:30'] ],
-    '여초G': [ ['장자초','화봉초','11:45'] ]
+    '여초A': [ ['남양주양정초','장승초','09:30','1'], ['장승초','창현초','09:45','1'], ['창현초','남양주양정초','10:00','1'] ],
+    '여초B': [ ['장내초','남양주다산초','10:15','1'], ['남양주다산초','남양주백봉초','10:30','1'], ['남양주백봉초','장내초','10:45','1'] ],
+    '여초C': [ ['주곡초','부양초','11:00','1'], ['부양초','다산새봄초','11:15','1'], ['다산새봄초','주곡초','11:30','1'] ],
+    '여초D': [ ['토평초','진접초','09:30','2'], ['진접초','다산가람초','09:45','2'], ['다산가람초','토평초','10:00','2'] ],
+    '여초E': [ ['다산하늘초','양오초','10:15','2'], ['양오초','남양주미금초','10:30','2'], ['남양주미금초','다산하늘초','10:45','2'] ],
+    '여초F': [ ['해밀초','남양주송라초','11:00','2'], ['남양주송라초','금교초','11:15','2'], ['금교초','해밀초','11:30','2'] ],
+    '여초G': [ ['장자초','화봉초','11:45','1'] ]
   },
   girlMs: {
-    '여중A': [ ['구리여중','진접중','9:15'], ['진접중','가운중','10:00'], ['구리여중','가운중','10:45'] ],
-    '여중D': [ ['퇴계원중','장내중','9:15'], ['갈매중','미금중','10:00'], ['퇴계원중','갈매중','10:45'], ['장내중','미금중','11:30'], ['퇴계원중','미금중','12:30'], ['장내중','갈매중','12:45'] ],
-    '여중G': [ ['오남중','예봉중','9:15'], ['송라중','풍양중','9:45'], ['오남중','송라중','10:15'], ['예봉중','풍양중','10:45'], ['오남중','풍양중','11:15'], ['예봉중','송라중','11:45'] ],
-    '여중B': [ ['덕소중','광동중','9:30'], ['도농중','하랑중','10:15'], ['덕소중','도농중','11:00'], ['광동중','하랑중','11:30'], ['덕소중','하랑중','12:00'], ['광동중','도농중','12:15'] ],
-    '여중E': [ ['동구중','마석중','9:30'], ['화접중','장자중','10:15'], ['동구중','화접중','11:00'], ['마석중','장자중','11:45'], ['동구중','장자중','12:30'], ['마석중','화접중','12:45'] ],
-    '여중H': [ ['다산한강중','양오중','9:30'], ['인창중','와부중','10:00'], ['다산한강중','인창중','10:30'], ['양오중','와부중','11:00'], ['다산한강중','와부중','11:30'], ['양오중','인창중','12:00'] ],
-    '여중C': [ ['판곡중','별가람중','9:45'], ['교문중','진건중','10:30'], ['판곡중','교문중','11:15'], ['별가람중','진건중','11:45'], ['판곡중','진건중','12:15'], ['별가람중','교문중','12:15'] ],
-    '여중F': [ ['다산새봄중','평내중','9:45'], ['호평중','어람중','10:30'], ['다산새봄중','호평중','11:15'], ['평내중','어람중','12:00'], ['다산새봄중','어람중','12:30'], ['평내중','호평중','12:45'] ]
+    '여중A': [ ['구리여중','진접중','9:15','1'], ['진접중','가운중','10:00','1'], ['구리여중','가운중','10:45','1'] ],
+    '여중D': [ ['퇴계원중','장내중','9:15','2'], ['갈매중','미금중','10:00','2'], ['퇴계원중','갈매중','10:45','2'], ['장내중','미금중','11:30','2'], ['퇴계원중','미금중','12:30','1'], ['장내중','갈매중','12:45','1'] ],
+    '여중G': [ ['오남중','예봉중','9:15','3'], ['송라중','풍양중','9:45','3'], ['오남중','송라중','10:15','3'], ['예봉중','풍양중','10:45','3'], ['오남중','풍양중','11:15','3'], ['예봉중','송라중','11:45','3'] ],
+    '여중B': [ ['덕소중','광동중','9:30','1'], ['도농중','하랑중','10:15','1'], ['덕소중','도농중','11:00','1'], ['광동중','하랑중','11:30','1'], ['덕소중','하랑중','12:00','1'], ['광동중','도농중','12:15','2'] ],
+    '여중E': [ ['동구중','마석중','9:30','2'], ['화접중','장자중','10:15','2'], ['동구중','화접중','11:00','2'], ['마석중','장자중','11:45','2'], ['동구중','장자중','12:30','2'], ['마석중','화접중','12:45','2'] ],
+    '여중H': [ ['다산한강중','양오중','9:30','3'], ['인창중','와부중','10:00','3'], ['다산한강중','인창중','10:30','3'], ['양오중','와부중','11:00','3'], ['다산한강중','와부중','11:30','3'], ['양오중','인창중','12:00','3'] ],
+    '여중C': [ ['판곡중','별가람중','9:45','1'], ['교문중','진건중','10:30','1'], ['판곡중','교문중','11:15','1'], ['별가람중','진건중','11:45','1'], ['판곡중','진건중','12:15','1'], ['별가람중','교문중','12:15','3'] ],
+    '여중F': [ ['다산새봄중','평내중','9:45','2'], ['호평중','어람중','10:30','2'], ['다산새봄중','호평중','11:15','2'], ['평내중','어람중','12:00','2'], ['다산새봄중','어람중','12:30','3'], ['평내중','호평중','12:45','3'] ]
   },
   girlHs: {
     '여고C': [ ['광동고','덕소고'], ['도농고','인창고'], ['광동고','도농고'], ['덕소고','인창고'], ['광동고','인창고'], ['덕소고','도농고'] ],
@@ -395,13 +397,13 @@ function buildDivisionData(k){
       if(fixedMatches){
         // 요강 시간표에 실제로 표기된 순서·방향 그대로 사용
         fixedMatches.forEach((row,idx)=>{
-          const [nameA,nameB,time] = row;
+          const [nameA,nameB,time,court] = row;
           const a = nameToId[nameA], b = nameToId[nameB];
           if(!a||!b) return;
           const mid = 'm_'+gid+'_'+idx;
           matches[mid] = {
             groupId:gid, teamA:a, teamB:b, sets:{}, setsToPlay:p.prelimSets, drawAllowed:p.prelimDraw,
-            stage:'group', status:'scheduled', createdAt: idx, time: time||null
+            stage:'group', status:'scheduled', createdAt: idx, time: time||null, court: court||null
           };
         });
       } else {
@@ -581,17 +583,31 @@ function renderMatches(k,div){
   if(groupMatches.length===0){
     return `<div class="empty-state"><div class="big">🤾</div>조편성 탭에서 조를 만들고 대진을 생성하세요.</div>`;
   }
+  if(!window._collapsedGroups) window._collapsedGroups = new Set();
   let html='';
   Object.entries(groups).forEach(([gid,g])=>{
     const ms = groupMatches.filter(([id,m])=>m.groupId===gid).sort((a,b)=>a[1].createdAt-b[1].createdAt);
     if(ms.length===0) return;
-    html += `<div class="section-title">${g.name}</div>`;
-    ms.forEach(([mid,m])=>{ html += renderMatchCard(k,mid,m,div); });
+    const key = k+'_'+gid;
+    const collapsed = window._collapsedGroups.has(key);
+    html += `<div class="section-title group-toggle" onclick="toggleGroupCollapse('${key}')" style="cursor:pointer;user-select:none;">
+      <span style="display:inline-block;transition:transform .15s;transform:rotate(${collapsed?'-90deg':'0deg'});">▾</span> ${g.name}
+      <span style="color:var(--chalk-dim);font-weight:400;font-size:13px;">(${ms.length}경기)</span>
+    </div>`;
+    if(!collapsed){
+      ms.forEach(([mid,m])=>{ html += renderMatchCard(k,mid,m,div); });
+    }
   });
   return html;
 }
+window.toggleGroupCollapse = function(key){
+  if(!window._collapsedGroups) window._collapsedGroups = new Set();
+  if(window._collapsedGroups.has(key)) window._collapsedGroups.delete(key);
+  else window._collapsedGroups.add(key);
+  paintMain();
+};
 
-function teamName(div,id){ return id && div.teams && div.teams[id] ? div.teams[id].name : (id? id : 'TBD'); }
+function teamName(div,id){ return id && div.teams && div.teams[id] ? div.teams[id].name : (id? id : '미정'); }
 
 function renderMatchCard(k,mid,m,div){
   const isAdmin = state.role==='admin';
@@ -609,10 +625,13 @@ function renderMatchCard(k,mid,m,div){
   }
   let html = `<div class="match-card">
     <div class="match-top">
-      <span class="match-group-label">${m.stage==='bracket'?(m.roundLabel||'본선'):'예선'}${m.time?' · '+m.time:''}</span>
+      <span class="match-group-label">${m.stage==='bracket'?(m.roundLabel||'본선'):'예선'}${m.time?' · '+m.time:''}${m.court?' · '+m.court+'코트':''}</span>
       <span class="status-pill ${status}">${status==='done'?'종료':status==='live'?'진행중':'예정'}</span>
-    </div>
-    <div class="teams-row">
+    </div>`;
+  if(m.stage==='group' && isAdmin){
+    html += `<input type="text" value="${m.court||''}" placeholder="코트 번호 (예: 1)" onchange="setMatchCourt('${k}','${mid}',this.value)" style="width:100%;margin-bottom:8px;padding:6px 8px;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);border-radius:6px;font-size:12px;">`;
+  }
+  html += `<div class="teams-row">
       <span class="tname ${winner==='A'?'winner':''}">${nameA}</span>
       <span class="vs">VS</span>
       <span class="tname ${winner==='B'?'winner':''}">${nameB}</span>
@@ -712,7 +731,7 @@ function renderStandings(k,div){
         </td>`:''}
       </tr>`;
     });
-    html += `</tbody></table><div class="small-note">진출: 상위 ${adv}팀 (연한 초록 배경)</div>`;
+    html += `</tbody></table><div class="small-note">진출: 상위 ${adv}팀 (초록 강조)</div>`;
   });
   return html;
 }
@@ -868,7 +887,7 @@ function renderBracket(k,div){
           ${teamOptions.map(t=>`<option value="${t.id}">${t.label}</option>`).join('')}
         </select>`;
       } else {
-        html += `<div class="bslot ${winner==='A'?'winner':''}">${nameA||'TBD'} ${canEditSlots?`<a href="javascript:void(0)" onclick="assignBracketSlot('${k}',${rIdx},'${mid}','teamA','')" style="color:var(--danger);float:right;">✕</a>`:''}</div>`;
+        html += `<div class="bslot ${winner==='A'?'winner':''}">${nameA||'미정'} ${canEditSlots?`<a href="javascript:void(0)" onclick="assignBracketSlot('${k}',${rIdx},'${mid}','teamA','')" style="color:var(--danger);float:right;">✕</a>`:''}</div>`;
       }
       if(canEditSlots && !m.teamB){
         html += `<select class="bslot-select" onchange="assignBracketSlot('${k}',${rIdx},'${mid}','teamB',this.value)" style="width:100%;margin-bottom:4px;padding:4px;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);border-radius:4px;font-size:12px;">
@@ -876,7 +895,7 @@ function renderBracket(k,div){
           ${teamOptions.map(t=>`<option value="${t.id}">${t.label}</option>`).join('')}
         </select>`;
       } else {
-        html += `<div class="bslot ${winner==='B'?'winner':''}">${nameB||'TBD'} ${canEditSlots?`<a href="javascript:void(0)" onclick="assignBracketSlot('${k}',${rIdx},'${mid}','teamB','')" style="color:var(--danger);float:right;">✕</a>`:''}</div>`;
+        html += `<div class="bslot ${winner==='B'?'winner':''}">${nameB||'미정'} ${canEditSlots?`<a href="javascript:void(0)" onclick="assignBracketSlot('${k}',${rIdx},'${mid}','teamB','')" style="color:var(--danger);float:right;">✕</a>`:''}</div>`;
       }
       if(isAdmin){
         html += `<input type="text" value="${m.court||''}" placeholder="코트" onchange="setBracketCourt('${k}',${rIdx},'${mid}',this.value)" style="width:100%;margin-top:6px;padding:4px 6px;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);border-radius:4px;font-size:12px;">`;
@@ -921,6 +940,9 @@ window.openBracketMatch = function(k,mid){
 };
 
 // setSetResult / forceWinner / resetMatch 는 그룹경기와 본선경기 mid 포맷이 다르므로 분기
+window.setMatchCourt = function(k,mid,value){
+  db.ref(`tournaments/${state.code}/divisions/${k}/matches/${mid}/court`).set(value || null);
+};
 window.setSetResult = function(k,mid,setIdx,winner){
   if(mid.startsWith('BRACKET:')){
     const [,roundIdx,realMid] = mid.split(':');
