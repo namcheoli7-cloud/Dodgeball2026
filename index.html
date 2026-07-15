@@ -249,7 +249,46 @@ const PRESET_GROUPS = {
   ]
 };
 
-// ---------- 내부 설정 (사용자는 신경 쓸 필요 없음) ----------
+// 요강 시간표에 실제로 표기된 순서·방향(어느 학교가 먼저 나오는지) 그대로의 대진 데이터.
+// [팀A, 팀B, 경기시간] 형식이며, 존재하는 조는 이 순서를 그대로 사용하고
+// (자동 서킷 생성 대신) 여기 없는 조만 라운드로빈으로 자동 생성합니다.
+const PRESET_MATCHES = {
+  boyEl: {
+    '남A': [
+      ['다산하늘초','남양주송라초','09:30'], ['다산새봄초','다산하늘초','09:45'], ['남양주송라초','다산새봄초','10:00'],
+      ['금교초','다산새봄초','10:15'], ['금교초','다산하늘초','10:30'], ['남양주송라초','금교초','10:45']
+    ],
+    '남B': [
+      ['장승초','남양주다산초','11:00'], ['창현초','평내초','11:15'], ['남양주다산초','창현초','11:30'],
+      ['평내초','장승초','11:45'], ['남양주다산초','평내초','12:00'], ['장승초','창현초','12:00']
+    ]
+  },
+  girlEl: {
+    '여A': [ ['남양주양정초','장승초','09:30'], ['장승초','창현초','09:45'], ['창현초','남양주양정초','10:00'] ],
+    '여B': [ ['장내초','남양주다산초','10:15'], ['남양주다산초','남양주백봉초','10:30'], ['남양주백봉초','장내초','10:45'] ],
+    '여C': [ ['주곡초','부양초','11:00'], ['부양초','다산새봄초','11:15'], ['다산새봄초','주곡초','11:30'] ],
+    '여D': [ ['토평초','진접초','09:30'], ['진접초','다산가람초','09:45'], ['다산가람초','토평초','10:00'] ],
+    '여E': [ ['다산하늘초','양오초','10:15'], ['양오초','남양주미금초','10:30'], ['남양주미금초','다산하늘초','10:45'] ],
+    '여F': [ ['해밀초','남양주송라초','11:00'], ['남양주송라초','금교초','11:15'], ['금교초','해밀초','11:30'] ],
+    '여G': [ ['장자초','화봉초','11:45'] ]
+  },
+  girlMs: {
+    '1조': [ ['구리여중','진접중','9:15'], ['진접중','가운중','10:00'], ['구리여중','가운중','10:45'] ],
+    '2조': [ ['퇴계원중','장내중','9:15'], ['갈매중','미금중','10:00'], ['퇴계원중','갈매중','10:45'], ['장내중','미금중','11:30'], ['퇴계원중','미금중','12:30'], ['장내중','갈매중','12:45'] ],
+    '3조': [ ['오남중','예봉중','9:15'], ['송라중','풍양중','9:45'], ['오남중','송라중','10:15'], ['예봉중','풍양중','10:45'], ['오남중','풍양중','11:15'], ['예봉중','송라중','11:45'] ],
+    '4조': [ ['덕소중','광동중','9:30'], ['도농중','하랑중','10:15'], ['덕소중','도농중','11:00'], ['광동중','하랑중','11:30'], ['덕소중','하랑중','12:00'], ['광동중','도농중','12:15'] ],
+    '5조': [ ['동구중','마석중','9:30'], ['화접중','장자중','10:15'], ['동구중','화접중','11:00'], ['마석중','장자중','11:45'], ['동구중','장자중','12:30'], ['마석중','화접중','12:45'] ],
+    '6조': [ ['다산한강중','양오중','9:30'], ['인창중','와부중','10:00'], ['다산한강중','인창중','10:30'], ['양오중','와부중','11:00'], ['다산한강중','와부중','11:30'], ['양오중','인창중','12:00'] ],
+    '7조': [ ['판곡중','별가람중','9:45'], ['교문중','진건중','10:30'], ['판곡중','교문중','11:15'], ['별가람중','진건중','11:45'], ['판곡중','진건중','12:15'], ['별가람중','교문중','12:15'] ],
+    '8조': [ ['다산새봄중','평내중','9:45'], ['호평중','어람중','10:30'], ['다산새봄중','호평중','11:15'], ['평내중','어람중','12:00'], ['다산새봄중','어람중','12:30'], ['평내중','호평중','12:45'] ]
+  },
+  girlHs: {
+    'A조': [ ['광동고','덕소고'], ['도농고','인창고'], ['광동고','도농고'], ['덕소고','인창고'], ['광동고','인창고'], ['덕소고','도농고'] ],
+    'B조': [ ['평내고','수택고'], ['오남고','와부고'], ['평내고','오남고'], ['수택고','와부고'], ['평내고','와부고'], ['수택고','오남고'] ],
+    'C조': [ ['진건고','남양주다산고'], ['진접고','가운고'], ['진건고','가운고'], ['진건고','진접고'], ['남양주다산고','진접고'], ['남양주다산고','가운고'] ],
+    'D조': [ ['구리여고','동화고'], ['심석고','퇴계원고'], ['구리여고','퇴계원고'], ['구리여고','심석고'], ['동화고','심석고'], ['동화고','퇴계원고'] ]
+  }
+};
 // 대회 데이터를 저장할 내부 식별자입니다. 화면에는 노출되지 않습니다.
 const TOURNAMENT_ID = "구리남양주2026";
 // 운영단(관리자) 전환 시 사용할 비밀번호입니다. 필요하면 이 값만 바꾸세요.
@@ -325,6 +364,7 @@ function buildDivisionData(k){
   const groups = {};
   const matches = {};
   const groupDefs = PRESET_GROUPS[k];
+  const matchPresets = PRESET_MATCHES[k]||{};
   if(groupDefs){
     const nameToId = {};
     Object.entries(teams).forEach(([id,t])=>{ nameToId[t.name]=id; });
@@ -334,22 +374,38 @@ function buildDivisionData(k){
       const teamIds = g.teams.map(name=>nameToId[name]).filter(Boolean);
       teamIds.forEach(id=>{ teams[id].groupId = gid; });
 
-      let arr = teamIds.slice();
-      if(arr.length%2===1) arr.push(null);
-      const n=arr.length, rounds=n-1, half=n/2;
-      let rot=arr.slice(); let idx=0;
-      for(let r=0;r<rounds;r++){
-        for(let i=0;i<half;i++){
-          const a=rot[i], b=rot[n-1-i];
-          if(a && b){
-            const mid = 'm_'+gid+'_'+(idx++);
-            matches[mid] = {
-              groupId:gid, teamA:a, teamB:b, sets:{}, setsToPlay:p.prelimSets, drawAllowed:p.prelimDraw,
-              stage:'group', status:'scheduled', createdAt: idx
-            };
+      const fixedMatches = matchPresets[g.name];
+      if(fixedMatches){
+        // 요강 시간표에 실제로 표기된 순서·방향 그대로 사용
+        fixedMatches.forEach((row,idx)=>{
+          const [nameA,nameB,time] = row;
+          const a = nameToId[nameA], b = nameToId[nameB];
+          if(!a||!b) return;
+          const mid = 'm_'+gid+'_'+idx;
+          matches[mid] = {
+            groupId:gid, teamA:a, teamB:b, sets:{}, setsToPlay:p.prelimSets, drawAllowed:p.prelimDraw,
+            stage:'group', status:'scheduled', createdAt: idx, time: time||null
+          };
+        });
+      } else {
+        // 프리셋 순서 데이터가 없는 조는 서킷(라운드로빈) 방식으로 자동 생성
+        let arr = teamIds.slice();
+        if(arr.length%2===1) arr.push(null);
+        const n=arr.length, rounds=n-1, half=n/2;
+        let rot=arr.slice(); let idx=0;
+        for(let r=0;r<rounds;r++){
+          for(let i=0;i<half;i++){
+            const a=rot[i], b=rot[n-1-i];
+            if(a && b){
+              const mid = 'm_'+gid+'_'+(idx++);
+              matches[mid] = {
+                groupId:gid, teamA:a, teamB:b, sets:{}, setsToPlay:p.prelimSets, drawAllowed:p.prelimDraw,
+                stage:'group', status:'scheduled', createdAt: idx
+              };
+            }
           }
+          rot=[rot[0], ...rot.slice(-1), ...rot.slice(1,-1)];
         }
-        rot=[rot[0], ...rot.slice(-1), ...rot.slice(1,-1)];
       }
     });
   }
@@ -650,7 +706,7 @@ function renderMatchCard(k,mid,m,div){
   }
   let html = `<div class="match-card">
     <div class="match-top">
-      <span class="match-group-label">${m.stage==='bracket'?(m.roundLabel||'본선'):'예선'}</span>
+      <span class="match-group-label">${m.stage==='bracket'?(m.roundLabel||'본선'):'예선'}${m.time?' · '+m.time:''}</span>
       <span class="status-pill ${status}">${status==='done'?'종료':status==='live'?'진행중':'예정'}</span>
     </div>
     <div class="teams-row">
