@@ -732,11 +732,13 @@ function renderStandings(k,div){
     </tr></thead><tbody>`;
     rows.forEach((r,i)=>{
       const tied = (i>0 && r.pts===rows[i-1].pts) || (i<rows.length-1 && r.pts===rows[i+1].pts);
+      const canUp = i>0 && rows[i-1].pts===r.pts;
+      const canDown = i<rows.length-1 && rows[i+1].pts===r.pts;
       html += `<tr class="${i<adv?'advance':''}">
         <td class="rank">${i+1}</td><td>${r.name}${tied?' <span style="color:var(--out-orange);">•</span>':''}</td><td>${r.played}</td><td>${r.win}</td><td>${r.draw}</td><td>${r.lose}</td><td>${r.pts}</td><td>${r.setScore}</td>
         ${state.role==='admin'?`<td class="reorder-btns">
-          <button class="btn btn-sm" ${i===0?'disabled':''} onclick="manualReorder('${k}','${gid}',${i},-1)">↑</button>
-          <button class="btn btn-sm" ${i===rows.length-1?'disabled':''} onclick="manualReorder('${k}','${gid}',${i},1)">↓</button>
+          <button class="btn btn-sm" ${canUp?'':'disabled'} onclick="manualReorder('${k}','${gid}',${i},-1)">↑</button>
+          <button class="btn btn-sm" ${canDown?'':'disabled'} onclick="manualReorder('${k}','${gid}',${i},1)">↓</button>
         </td>`:''}
       </tr>`;
     });
@@ -745,12 +747,13 @@ function renderStandings(k,div){
   return html;
 }
 
-// 수동 순위 오버라이드: manualOrder 배열에 팀id 순서 저장
+// 수동 순위 오버라이드: 승점이 같은 팀끼리만 순서를 바꿀 수 있습니다
 window.manualReorder = function(k,gid,idx,dir){
   const div = state.data.divisions[k];
   const rows = getDisplayStandings(k,div,gid);
   const j = idx+dir;
   if(j<0||j>=rows.length) return;
+  if(rows[idx].pts !== rows[j].pts){ toast('승점이 다른 팀끼리는 순서를 바꿀 수 없습니다'); return; }
   const ids = rows.map(r=>r.id);
   [ids[idx],ids[j]]=[ids[j],ids[idx]];
   db.ref(`tournaments/${state.code}/divisions/${k}/groups/${gid}/manualOrder`).set(ids);
