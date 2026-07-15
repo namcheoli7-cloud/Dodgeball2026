@@ -213,6 +213,13 @@ const DIVISION_PRESETS = {
 };
 const DIVISION_ORDER = ["boyEl","girlEl","girlMs","girlHs"];
 
+// ---------- 자동 입장 설정 ----------
+// 이 값을 대회 코드로 지정하면, 페이지를 열었을 때 코드 입력 없이
+// 바로 해당 대회의 "관람객 모드"로 들어갑니다.
+// 운영단(관리자)은 화면 우측 상단의 "운영단 로그인"으로 전환합니다.
+// 자동입장을 쓰지 않으려면 빈 문자열 ""로 두면 기존 코드 입력 화면이 나옵니다.
+const AUTO_JOIN_CODE = "MASEOK26";
+
 // ---------- 전역 상태 ----------
 let state = {
   code: null,
@@ -247,8 +254,31 @@ function loadLocal(){
 const app = document.getElementById('app');
 
 function render(){
+  if(state.forceLanding){ renderLanding(); return; }
+  if(!state.code && AUTO_JOIN_CODE){ autoJoinSpectator(); return; }
   if(!state.code){ renderLanding(); return; }
   renderMain();
+}
+
+function autoJoinSpectator(){
+  app.innerHTML = `<div class="landing"><div class="court-mark">${courtMarkSVG()}</div><div class="brand-sub">불러오는 중...</div></div>`;
+  db.ref('tournaments/'+AUTO_JOIN_CODE+'/meta').once('value').then(snap=>{
+    if(!snap.exists()){
+      app.innerHTML = `<div class="landing">
+        <div class="court-mark">${courtMarkSVG()}</div>
+        <div>
+          <div class="brand-title">아직 대회가 준비되지 않았습니다</div>
+          <div class="brand-sub">운영단이 먼저 대회를 생성해야 관람객 화면이 열립니다.</div>
+        </div>
+        <button class="btn btn-primary" onclick="state.forceLanding=true;render()">운영단으로 대회 생성하기</button>
+      </div>`;
+      return;
+    }
+    state.code = AUTO_JOIN_CODE;
+    state.role = 'spectator';
+    saveLocal();
+    render();
+  });
 }
 
 function courtMarkSVG(){
@@ -305,7 +335,7 @@ window.createWorkspace = function(){
       meta:{ name:code, createdAt: Date.now(), adminPw: pw },
       divisions: initDivisions
     }).then(()=>{
-      state.code = code; state.role='admin'; saveLocal();
+      state.code = code; state.role='admin'; state.forceLanding=false; saveLocal();
       toast('대회 코드가 생성되었습니다');
       render();
     });
@@ -343,7 +373,7 @@ window.chooseRole = function(role){
     const pw = document.getElementById('pwCheck').value;
     if(pw !== window._roleMeta.adminPw){ toast('비밀번호가 올바르지 않습니다'); return; }
   }
-  state.role = role; saveLocal();
+  state.role = role; state.forceLanding=false; saveLocal();
   window._roleOverlay.remove();
   render();
 };
@@ -365,7 +395,10 @@ function paintMain(){
     <div class="brand"><div class="dot"></div> ${d.meta.name}</div>
     <div style="display:flex;align-items:center;gap:10px;">
       <span class="role-badge ${state.role==='admin'?'admin':''}">${state.role==='admin'?'운영단':'참관'}</span>
-      <button class="btn btn-ghost btn-sm" onclick="leaveWorkspace()">나가기</button>
+      ${state.role==='admin'
+        ? `<button class="btn btn-ghost btn-sm" onclick="backToSpectator()">참관모드로</button>`
+        : `<button class="btn btn-ghost btn-sm" onclick="adminLoginPrompt()">운영단 로그인</button>`}
+      ${!AUTO_JOIN_CODE ? `<button class="btn btn-ghost btn-sm" onclick="leaveWorkspace()">나가기</button>` : ''}
     </div>
   </div>
   <div class="wrap">`;
@@ -405,9 +438,34 @@ function subtabBtn(key,label){
   return `<div class="subtab ${state.subtab===key?'active':''}" onclick="state.subtab='${key}';paintMain()">${label}</div>`;
 }
 window.selectDivision = function(k){ state.division=k; state.subtab='setup'; paintMain(); };
+
+window.adminLoginPrompt = function(){
+  const overlay = document.createElement('div');
+  overlay.className='landing';
+  overlay.style.position='fixed'; overlay.style.inset='0'; overlay.style.background='rgba(18,21,27,0.97)'; overlay.style.zIndex='50';
+  overlay.innerHTML = `
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:12px;">운영단 로그인</div>
+      <input type="password" id="adminPwInput" placeholder="관리자 비밀번호">
+      <button class="btn btn-primary btn-block" onclick="submitAdminLogin()">입장</button>
+      <button class="btn btn-ghost btn-block" onclick="this.closest('div.landing').remove()">취소</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  window._adminOverlay = overlay;
+};
+window.submitAdminLogin = function(){
+  const pw = document.getElementById('adminPwInput').value;
+  if(pw !== state.data.meta.adminPw){ toast('비밀번호가 올바르지 않습니다'); return; }
+  state.role='admin'; saveLocal();
+  window._adminOverlay.remove();
+  paintMain();
+};
+window.backToSpectator = function(){
+  state.role='spectator'; saveLocal(); paintMain();
+};
 window.leaveWorkspace = function(){
   db.ref('tournaments/'+state.code).off();
-  state.code=null; state.role=null; state.division=null;
+  state.code=null; state.role=null; state.division=null; state.forceLanding=false;
   localStorage.removeItem('dodgeball_code'); localStorage.removeItem('dodgeball_role');
   render();
 };
@@ -960,6 +1018,12 @@ function propagateBracketWinner(k,roundIdx,mid){
 }
 
 // ============================================================
+loadLocal();
+if(AUTO_JOIN_CODE && state.code===AUTO_JOIN_CODE && state.role==='admin'){
+  // 같은 기기에서 이전에 운영단 로그인을 했었다면 자동으로 유지
+} else {
+  state.code = null; state.role = null;
+}
 render();
 </script>
 </body>
