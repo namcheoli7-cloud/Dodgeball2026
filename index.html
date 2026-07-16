@@ -583,13 +583,13 @@ function renderMatches(k,div){
   if(groupMatches.length===0){
     return `<div class="empty-state"><div class="big">🤾</div>조편성 탭에서 조를 만들고 대진을 생성하세요.</div>`;
   }
-  if(!window._collapsedGroups) window._collapsedGroups = new Set();
+  if(!window._expandedGroups) window._expandedGroups = new Set();
   let html='';
   Object.entries(groups).forEach(([gid,g])=>{
     const ms = groupMatches.filter(([id,m])=>m.groupId===gid).sort((a,b)=>a[1].createdAt-b[1].createdAt);
     if(ms.length===0) return;
     const key = k+'_'+gid;
-    const collapsed = window._collapsedGroups.has(key);
+    const collapsed = !window._expandedGroups.has(key);
     html += `<div class="section-title group-toggle" onclick="toggleGroupCollapse('${key}')" style="cursor:pointer;user-select:none;">
       <span style="display:inline-block;transition:transform .15s;transform:rotate(${collapsed?'-90deg':'0deg'});">▾</span> ${g.name}
       <span style="color:var(--chalk-dim);font-weight:400;font-size:13px;">(${ms.length}경기)</span>
@@ -601,9 +601,9 @@ function renderMatches(k,div){
   return html;
 }
 window.toggleGroupCollapse = function(key){
-  if(!window._collapsedGroups) window._collapsedGroups = new Set();
-  if(window._collapsedGroups.has(key)) window._collapsedGroups.delete(key);
-  else window._collapsedGroups.add(key);
+  if(!window._expandedGroups) window._expandedGroups = new Set();
+  if(window._expandedGroups.has(key)) window._expandedGroups.delete(key);
+  else window._expandedGroups.add(key);
   paintMain();
 };
 
@@ -720,7 +720,8 @@ function renderStandings(k,div){
   const groups = div.groups||{};
   if(Object.keys(groups).length===0) return `<div class="empty-state"><div class="big">📊</div>조를 먼저 편성하세요.</div>`;
   const preset = DIVISION_PRESETS[k];
-  let html = `<div class="small-note">승점(승3·무1·패0)으로 자동 정렬됩니다. ${state.role==='admin'?'승점이 같은 팀끼리는 앱이 임의로 순서를 매기지 않으니, 총 내야 득점수·승자승·연장전/골든볼 결과를 보고 아래 화살표로 직접 순서를 조정하세요.':'승점이 같은 팀의 순서는 운영단이 직접 조정합니다.'}</div>`;
+  let html = `<div class="small-note">승점(승3·무1·패0)으로 자동 정렬됩니다. ${state.role==='admin'?'승점이 같은 팀끼리는 앱이 임의로 순서를 매기지 않으니, 총 내야 득점수·승자승·연장전/골든볼 결과를 보고 아래 화살표로 직접 순서를 조정하세요.':'승점이 같은 팀의 순서는 운영단이 직접 조정합니다.'}</div>
+  <div class="small-note" style="margin-top:4px;">승점이 동률인 경우: 총 내야 득점수 &gt; 승자승 &gt; 연장전(2분) &gt; 골든볼 순으로 결정</div>`;
   Object.entries(groups).forEach(([gid,g])=>{
     const rows = getDisplayStandings(k,div,gid);
     if(rows.length===0) return;
