@@ -976,10 +976,12 @@ function renderMatchCard(k,mid,m,div,opts){
       <input type="text" value="${m.court||''}" placeholder="코트 번호 (예: 1)" onchange="setMatchCourt('${k}','${mid}',this.value)" style="flex:1;padding:6px 8px;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);border-radius:6px;font-size:12px;">
     </div>`;
   }
+  const winBadge = ` <span style="background:var(--in-green);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px;margin-left:4px;">승</span>`;
+  const loseBadge = ` <span style="background:var(--danger);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px;margin-left:4px;">패</span>`;
   html += `<div class="teams-row">
-      <span class="tname ${winner==='A'?'winner':''}">${nameA}</span>
-      <span class="vs">VS</span>
-      <span class="tname ${winner==='B'?'winner':''}">${nameB}</span>
+      <span class="tname ${winner==='A'?'winner':''}">${nameA}${winner==='A'?winBadge:''}${winner==='B'?loseBadge:''}</span>
+      <span class="vs" ${winner==='draw'?'style="color:var(--draw-blue);font-weight:800;font-size:16px;"':''}>${winner==='draw'?'무':'VS'}</span>
+      <span class="tname ${winner==='B'?'winner':''}">${nameB}${winner==='B'?winBadge:''}${winner==='A'?loseBadge:''}</span>
     </div>`;
   if(m.teamA && m.teamB){
     if(showScoreEntry){
