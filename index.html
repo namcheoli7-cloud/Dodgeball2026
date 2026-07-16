@@ -320,6 +320,7 @@ let state = {
   selectedGroup: null,
   mainView: 'home',     // 'home' | 'courts' | 'checklist'
   checklistDivision: null,
+  selectedCourt: null,
   data: null,           // firebase live data
 };
 
@@ -473,7 +474,7 @@ function paintMain(){
 
   body += `<div class="tabs" style="margin-top:2px;">
     <div class="tab ${state.mainView==='home'?'active':''}" onclick="state.mainView='home';paintMain()">🏠 종별</div>
-    <div class="tab ${state.mainView==='courts'?'active':''}" onclick="state.mainView='courts';paintMain()">🏐 코트현황</div>
+    <div class="tab ${state.mainView==='courts'?'active':''}" onclick="state.mainView='courts';paintMain()">🏐 코트별</div>
     ${state.role==='admin'?`<div class="tab ${state.mainView==='checklist'?'active':''}" onclick="state.mainView='checklist';paintMain()">✅ 체크리스트</div>`:''}
   </div>`;
 
@@ -878,13 +879,6 @@ window.manualReorder = function(k,gid,idx,dir){
   db.ref(`tournaments/${state.code}/divisions/${k}/groups/${gid}/manualOrder`).set(ids);
 };
 
-window.toggleGroupCollapse = function(key){
-  if(!window._expandedGroups) window._expandedGroups = new Set();
-  if(window._expandedGroups.has(key)) window._expandedGroups.delete(key);
-  else window._expandedGroups.add(key);
-  paintMain();
-};
-
 function parseTimeToMinutes(t){
   if(!t) return null;
   const m = String(t).match(/(\d{1,2}):(\d{2})/);
@@ -959,55 +953,62 @@ window.toggleChecklistItem = function(k, teamId, itemKey, value){
 };
 
 function renderCourtsView(d){
-  const courts = ['1','2','3'];
-  if(!window._expandedGroups) window._expandedGroups = new Set();
-  let html = `<div class="section-title" style="margin-top:8px;">🏐 코트별 진행 현황</div>
-  <div class="small-note" style="margin-bottom:14px;">주황색으로 강조된 경기가 현재 진행중입니다.</div>`;
+  if(!state.selectedCourt){
+    let html = `<div class="section-title" style="margin-top:8px;">🏐 코트별 진행 현황</div>
+    <div class="small-note" style="margin-bottom:14px;">날짜와 코트를 선택하세요.</div>`;
+    DIVISION_DATE.forEach((dateInfo, di)=>{
+      html += `<div class="section-title" style="margin-top:20px;">📅 ${dateInfo.label}</div><div class="group-picker-grid">`;
+      ['1','2','3'].forEach(c=>{
+        html += `<div class="division-card" style="text-align:center;" onclick='state.selectedCourt={"di":${di},"c":"${c}"};paintMain()'>
+          <div class="dtitle">${c}코트</div>
+        </div>`;
+      });
+      html += `</div>`;
+    });
+    return html;
+  }
 
-  DIVISION_DATE.forEach((dateInfo, di)=>{
-    html += `<div class="section-title" style="margin-top:22px;border-top:1px solid var(--line);padding-top:16px;">📅 ${dateInfo.label}</div>`;
-    courts.forEach(c=>{
-      let matches = [];
-      dateInfo.divs.forEach(k=>{
-        const div = d.divisions[k];
-        Object.entries(div.matches||{}).forEach(([mid,m])=>{
-          if(m.stage==='group' && m.court && String(m.court)===c){
-            matches.push({k,mid,m,div});
-          }
-        });
-      });
-      matches.sort((a,b)=>{
-        const ta=parseTimeToMinutes(a.m.time), tb=parseTimeToMinutes(b.m.time);
-        if(ta!==null && tb!==null && ta!==tb) return ta-tb;
-        if(ta!==null && tb===null) return -1;
-        if(ta===null && tb!==null) return 1;
-        return 0;
-      });
-      const key = 'court_'+di+'_'+c;
-      const collapsed = !window._expandedGroups.has(key);
-      html += `<div class="section-title group-toggle" onclick="toggleGroupCollapse('${key}')" style="cursor:pointer;user-select:none;margin-top:14px;">
-        <span style="display:inline-block;transition:transform .15s;transform:rotate(${collapsed?'-90deg':'0deg'});">▾</span> ${c}코트
-        <span style="color:var(--chalk-dim);font-weight:400;font-size:13px;">(${matches.length}경기)</span>
-      </div>`;
-      if(!collapsed){
-        if(matches.length===0){
-          html += `<div class="small-note">이 코트에 코트 번호가 지정된 경기가 없습니다.</div>`;
-        } else {
-          matches.forEach(({k,mid,m,div})=>{
-            const sets = m.sets||{}; const setCount = m.setsToPlay||2;
-            let winsA=0,winsB=0;
-            for(let i=0;i<setCount;i++){ if(sets[i]==='A')winsA++; if(sets[i]==='B')winsB++; }
-            const decided = !m.drawAllowed ? (winsA>Math.floor(setCount/2)||winsB>Math.floor(setCount/2)) : (winsA+winsB===setCount);
-            const isLive = (winsA+winsB)>0 && !decided;
-            html += `<div style="${isLive?'border:3px solid var(--out-orange);border-radius:12px;':''}">
-              <div style="padding:2px 6px 0;font-size:11px;color:var(--chalk-dim);">${DIVISION_PRESETS[k].short}${div.groups&&m.groupId&&div.groups[m.groupId]?' · '+div.groups[m.groupId].name:''}</div>
-              ${renderMatchCard(k,mid,m,div,{showTimeCourtInputs:false, showScoreEntry:true})}
-            </div>`;
-          });
-        }
+  const di = state.selectedCourt.di, c = state.selectedCourt.c;
+  const dateInfo = DIVISION_DATE[di];
+  let matches = [];
+  dateInfo.divs.forEach(k=>{
+    const div = d.divisions[k];
+    Object.entries(div.matches||{}).forEach(([mid,m])=>{
+      if(m.stage==='group' && m.court && String(m.court)===c){
+        matches.push({k,mid,m,div});
       }
     });
   });
+  matches.sort((a,b)=>{
+    const ta=parseTimeToMinutes(a.m.time), tb=parseTimeToMinutes(b.m.time);
+    if(ta!==null && tb!==null && ta!==tb) return ta-tb;
+    if(ta!==null && tb===null) return -1;
+    if(ta===null && tb!==null) return 1;
+    return 0;
+  });
+
+  let html = `<div class="flex-between" style="margin-bottom:14px;">
+    <button class="btn btn-ghost btn-sm" onclick="state.selectedCourt=null;paintMain()">&larr; 코트 목록</button>
+    <div style="font-weight:800;">${c}코트</div>
+    <div></div>
+  </div>
+  <div class="small-note" style="margin-bottom:10px;">${dateInfo.label} · 주황색으로 강조된 경기가 현재 진행중입니다.</div>`;
+
+  if(matches.length===0){
+    html += `<div class="empty-state"><div class="big">🏐</div>이 코트에 코트 번호가 지정된 경기가 없습니다.</div>`;
+  } else {
+    matches.forEach(({k,mid,m,div})=>{
+      const sets = m.sets||{}; const setCount = m.setsToPlay||2;
+      let winsA=0,winsB=0;
+      for(let i=0;i<setCount;i++){ if(sets[i]==='A')winsA++; if(sets[i]==='B')winsB++; }
+      const decided = !m.drawAllowed ? (winsA>Math.floor(setCount/2)||winsB>Math.floor(setCount/2)) : (winsA+winsB===setCount);
+      const isLive = (winsA+winsB)>0 && !decided;
+      html += `<div style="${isLive?'border:3px solid var(--out-orange);border-radius:12px;':''}">
+        <div style="padding:2px 6px 0;font-size:11px;color:var(--chalk-dim);">${DIVISION_PRESETS[k].short}${div.groups&&m.groupId&&div.groups[m.groupId]?' · '+div.groups[m.groupId].name:''}</div>
+        ${renderMatchCard(k,mid,m,div,{showTimeCourtInputs:false, showScoreEntry:true})}
+      </div>`;
+    });
+  }
   return html;
 }
 
