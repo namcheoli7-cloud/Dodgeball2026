@@ -792,9 +792,10 @@ function renderGroupResults(k,div){
     let html = `<div class="small-note" style="margin-bottom:10px;">확인할 조를 선택하세요.</div><div class="group-picker-grid">`;
     Object.entries(groups).forEach(([gid,g])=>{
       const gTeams = Object.entries(div.teams||{}).filter(([id,t])=>t.groupId===gid);
+      const teamList = gTeams.map(([id,t])=>t.name).join(', ');
       html += `<div class="division-card" style="text-align:center;" onclick="state.selectedGroup='${gid}';paintMain()">
         <div class="dtitle">${g.name}</div>
-        <div class="dmeta">${gTeams.length}팀</div>
+        <div class="dmeta" style="margin-top:4px;line-height:1.4;">${teamList}</div>
       </div>`;
     });
     html += `</div>`;
