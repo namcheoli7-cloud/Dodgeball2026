@@ -6,6 +6,7 @@
 <title>구리남양주 피구 대회 운영판</title>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root{
   --court-bg:#12151b;
@@ -301,6 +302,8 @@ const PRESET_MATCHES = {
 const TOURNAMENT_ID = "구리남양주2026";
 // 운영단(관리자) 전환 시 사용할 비밀번호입니다. 필요하면 이 값만 바꾸세요.
 const ADMIN_PASSWORD = "마석중2026";
+// 배포된 앱 주소 (관리자 홈 QR/링크용)
+const APP_URL = "https://namcheoli7-cloud.github.io/Dodgeball2026/";
 
 // ---------- 전역 상태 ----------
 let state = {
@@ -342,12 +345,16 @@ function render(){
 function bootstrapAndEnter(){
   app.innerHTML = `<div class="landing"><div class="court-mark">${courtMarkSVG()}</div><div class="brand-sub">불러오는 중...</div></div>`;
   db.ref('tournaments/'+TOURNAMENT_ID+'/meta').once('value').then(snap=>{
-    if(snap.exists()){ renderMain(); return; }
+    if(snap.exists()){
+      db.ref('tournaments/'+TOURNAMENT_ID+'/meta/visitCount').transaction(cur=>(cur||0)+1);
+      renderMain();
+      return;
+    }
     // 대회 데이터가 아직 없으면 요강 프리셋으로 자동 생성
     const initDivisions = {};
     DIVISION_ORDER.forEach(k=>{ initDivisions[k] = buildDivisionData(k); });
     db.ref('tournaments/'+TOURNAMENT_ID).set({
-      meta:{ name:"구리남양주 학교스포츠클럽 축제 · 피구", createdAt: Date.now(), adminPw: ADMIN_PASSWORD },
+      meta:{ name:"구리남양주 학교스포츠클럽 축제 · 피구", createdAt: Date.now(), adminPw: ADMIN_PASSWORD, visitCount: 1 },
       divisions: initDivisions
     }).then(()=>{ renderMain(); });
   });
@@ -474,7 +481,16 @@ function paintMain(){
     });
     body += `</div>`;
     if(state.role==='admin'){
-      body += `<div style="margin-top:32px;padding-top:20px;border-top:1px solid var(--line);text-align:center;">
+      body += `<div class="card" style="margin-top:20px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;">
+        <div id="qrSmallHolder" style="cursor:pointer;background:#fff;padding:8px;border-radius:8px;line-height:0;" onclick="openQrModal()"></div>
+        <div style="flex:1;min-width:180px;">
+          <div style="font-weight:800;font-size:15px;margin-bottom:4px;">📊 총 접속 횟수: <span style="color:var(--out-orange);">${d.meta.visitCount||0}회</span></div>
+          <div class="small-note" style="margin-bottom:8px;">참관·운영단 접속을 모두 합한 누적 횟수입니다.</div>
+          <div style="font-size:12px;color:var(--chalk-dim);word-break:break-all;">${APP_URL}</div>
+          <button class="btn btn-sm" style="margin-top:8px;" onclick="openQrModal()">QR 코드 크게 보기</button>
+        </div>
+      </div>`;
+      body += `<div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--line);text-align:center;">
         <button class="btn btn-danger btn-sm" onclick="resetAllResults()">전체 경기결과 초기화</button>
         <div class="small-note">모든 종별의 예선·본선 점수를 지웁니다 (조편성·대진 배치는 유지). 관리자 비밀번호 필요.</div>
       </div>`;
@@ -497,7 +513,30 @@ function paintMain(){
   }
   body += `</div>`;
   app.innerHTML = body;
+  if(!state.division && state.role==='admin'){
+    const holder = document.getElementById('qrSmallHolder');
+    if(holder && window.QRCode){
+      holder.innerHTML = '';
+      new QRCode(holder, { text: APP_URL, width:96, height:96, colorDark:'#12151b', colorLight:'#ffffff' });
+    }
+  }
 }
+
+window.openQrModal = function(){
+  const overlay = document.createElement('div');
+  overlay.style.position='fixed'; overlay.style.inset='0'; overlay.style.background='rgba(18,21,27,0.95)'; overlay.style.zIndex='70';
+  overlay.style.display='flex'; overlay.style.flexDirection='column'; overlay.style.alignItems='center'; overlay.style.justifyContent='center'; overlay.style.gap='16px'; overlay.style.padding='20px';
+  overlay.innerHTML = `
+    <div id="qrBigHolder" style="background:#fff;padding:20px;border-radius:14px;line-height:0;"></div>
+    <div style="color:var(--chalk);font-size:14px;word-break:break-all;text-align:center;max-width:320px;">${APP_URL}</div>
+    <button class="btn btn-primary" onclick="this.closest('div[style*=fixed]').remove()">닫기</button>
+  `;
+  document.body.appendChild(overlay);
+  const bigHolder = document.getElementById('qrBigHolder');
+  if(bigHolder && window.QRCode){
+    new QRCode(bigHolder, { text: APP_URL, width:280, height:280, colorDark:'#12151b', colorLight:'#ffffff' });
+  }
+};
 function subtabBtn(key,label){
   return `<div class="subtab ${state.subtab===key?'active':''}" onclick="state.subtab='${key}';paintMain()">${label}</div>`;
 }
