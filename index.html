@@ -311,7 +311,7 @@ let state = {
   code: TOURNAMENT_ID,
   role: null,          // 'admin' | 'spectator'
   division: null,
-  subtab: 'setup',      // 'setup' | 'matches' | 'standings' | 'bracket'
+  subtab: null,      // null (menu) | 'setup' | 'matches' | 'standings' | 'bracket'
   mainView: 'home',     // 'home' | 'courts'
   data: null,           // firebase live data
 };
@@ -512,13 +512,22 @@ function paintMain(){
       <h2 style="font-size:19px;">${div.label}</h2>
       <div></div>
     </div>`;
-    body += `<div class="subtabs">
-      ${subtabBtn('setup','조편성')}
-      ${subtabBtn('matches','예선경기결과')}
-      ${subtabBtn('standings','순위표')}
-      ${subtabBtn('bracket','본선대진')}
-    </div>`;
-    body += `<div id="subtabBody">${renderSubtab(k,div)}</div>`;
+    if(!state.subtab){
+      body += `<div class="division-grid" style="margin-top:16px;">
+        <div class="division-card" onclick="state.subtab='setup';paintMain()"><div class="dtitle">📋 조편성</div><div class="dmeta">조 구성·참가교 확인</div></div>
+        <div class="division-card" onclick="state.subtab='matches';paintMain()"><div class="dtitle">🏐 예선경기결과</div><div class="dmeta">시간·코트·점수 확인 및 입력</div></div>
+        <div class="division-card" onclick="state.subtab='standings';paintMain()"><div class="dtitle">📊 순위표</div><div class="dmeta">조별 순위·본선 진출 현황</div></div>
+        <div class="division-card" onclick="state.subtab='bracket';paintMain()"><div class="dtitle">🏆 본선대진</div><div class="dmeta">토너먼트 대진·결과</div></div>
+      </div>`;
+    } else {
+      const subtabLabels = {setup:'조편성', matches:'예선경기결과', standings:'순위표', bracket:'본선대진'};
+      body += `<div class="flex-between" style="margin-top:12px;margin-bottom:10px;">
+        <button class="btn btn-ghost btn-sm" onclick="state.subtab=null;paintMain()">&larr; 메뉴로</button>
+        <div style="font-weight:800;">${subtabLabels[state.subtab]}</div>
+        <div></div>
+      </div>`;
+      body += `<div id="subtabBody">${renderSubtab(k,div)}</div>`;
+    }
   }
   body += `</div>`;
   app.innerHTML = body;
@@ -626,10 +635,7 @@ window.openTeamModal = function(k, teamId){
   </div>`;
   document.body.appendChild(overlay);
 };
-function subtabBtn(key,label){
-  return `<div class="subtab ${state.subtab===key?'active':''}" onclick="state.subtab='${key}';paintMain()">${label}</div>`;
-}
-window.selectDivision = function(k){ state.division=k; state.subtab='setup'; paintMain(); };
+window.selectDivision = function(k){ state.division=k; state.subtab=null; paintMain(); };
 
 window.resetAllResults = function(){
   const pw = prompt('전체 경기결과를 초기화합니다. 관리자 비밀번호를 입력하세요.');
