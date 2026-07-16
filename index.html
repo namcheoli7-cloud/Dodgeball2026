@@ -481,6 +481,7 @@ function paintMain(){
       </div>`;
     });
     body += `</div>`;
+    body += renderLiveCourts(d);
     if(state.role==='admin'){
       body += `<div class="card" style="margin-top:20px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;">
         <div id="qrSmallHolder" style="cursor:pointer;background:#fff;padding:8px;border-radius:8px;line-height:0;" onclick="openQrModal()"></div>
@@ -728,6 +729,47 @@ function parseTimeToMinutes(t){
 
 function teamName(div,id){ return id && div.teams && div.teams[id] ? div.teams[id].name : (id? id : '미정'); }
 
+function findLiveCourtForMatch(mid){
+  const live = (state.data && state.data.liveCourts) || {};
+  for(const c of Object.keys(live)){ if(live[c] && live[c].mid===mid) return c; }
+  return null;
+}
+window.startMatchOnCourt = function(k,mid){
+  const div = state.data.divisions[k];
+  const m = div.matches[mid];
+  if(!m.court){ toast('먼저 코트 번호를 입력하세요'); return; }
+  const nameA = teamName(div,m.teamA), nameB = teamName(div,m.teamB);
+  const groupName = (div.groups && m.groupId && div.groups[m.groupId]) ? div.groups[m.groupId].name : '';
+  db.ref('tournaments/'+state.code+'/liveCourts/'+m.court).set({
+    k, mid, nameA, nameB, groupName, divLabel: DIVISION_PRESETS[k].short, startedAt: Date.now()
+  }).then(()=>toast(m.court+'코트에 경기시작으로 표시했습니다'));
+};
+window.endMatchOnCourt = function(court){
+  db.ref('tournaments/'+state.code+'/liveCourts/'+court).remove();
+};
+function renderLiveCourts(d){
+  const live = d.liveCourts || {};
+  const courts = ['1','2','3'];
+  let html = `<div class="section-title" style="margin-top:26px;">🏐 실시간 코트 현황</div><div class="division-grid">`;
+  courts.forEach(c=>{
+    const info = live[c];
+    if(info){
+      html += `<div class="card" style="border-color:var(--out-orange);">
+        <div style="font-size:12px;color:var(--chalk-dim);margin-bottom:8px;">${c}코트 · ${info.divLabel||''} ${info.groupName||''}</div>
+        <div style="font-weight:800;font-size:16px;text-align:center;line-height:1.5;">${info.nameA}<br><span style="color:var(--chalk-dim);font-weight:400;font-size:11px;">VS</span><br>${info.nameB}</div>
+        <div class="status-pill live" style="display:block;width:fit-content;margin:8px auto 0;">진행중</div>
+      </div>`;
+    } else {
+      html += `<div class="card" style="opacity:0.55;">
+        <div style="font-size:12px;color:var(--chalk-dim);margin-bottom:8px;">${c}코트</div>
+        <div style="text-align:center;color:var(--chalk-dim);padding:14px 0;">대기중</div>
+      </div>`;
+    }
+  });
+  html += `</div>`;
+  return html;
+}
+
 function renderMatchCard(k,mid,m,div){
   const isAdmin = state.role==='admin';
   const nameA = teamName(div,m.teamA), nameB = teamName(div,m.teamB);
@@ -782,6 +824,14 @@ function renderMatchCard(k,mid,m,div){
         <button class="btn btn-sm" onclick="forceWinner('${k}','${mid}','A')">${nameA} 승</button>
         <button class="btn btn-sm" onclick="forceWinner('${k}','${mid}','B')">${nameB} 승</button>
       </div>`;
+    }
+    if(isAdmin && m.stage==='group'){
+      const liveCourt = findLiveCourtForMatch(mid);
+      if(liveCourt){
+        html += `<div class="match-actions"><button class="btn btn-sm btn-danger" onclick="endMatchOnCourt('${liveCourt}')">■ ${liveCourt}코트 경기 종료</button></div>`;
+      } else {
+        html += `<div class="match-actions"><button class="btn btn-sm btn-primary" onclick="startMatchOnCourt('${k}','${mid}')">▶ 경기시작 (홈 화면에 표시)</button></div>`;
+      }
     }
     if(isAdmin){
       html += `<div class="match-actions"><button class="btn btn-ghost btn-sm" onclick="resetMatch('${k}','${mid}')">경기 초기화</button></div>`;
