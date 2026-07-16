@@ -797,20 +797,10 @@ function renderCourtsView(d){
           html += `<div class="small-note">이 코트에 코트 번호가 지정된 경기가 없습니다.</div>`;
         } else {
           matches.forEach(({k,mid,m,div})=>{
-            const nameA = teamName(div,m.teamA), nameB = teamName(div,m.teamB);
             const isLive = liveMid===mid;
-            const sets = m.sets||{}; const setCount = m.setsToPlay||2;
-            let winsA=0,winsB=0;
-            for(let i=0;i<setCount;i++){ if(sets[i]==='A')winsA++; if(sets[i]==='B')winsB++; }
-            const decided = !m.drawAllowed ? (winsA>Math.floor(setCount/2)||winsB>Math.floor(setCount/2)) : (winsA+winsB===setCount);
-            const status = (decided && (winsA+winsB)>0) ? 'done' : ((winsA+winsB)>0 ? 'live' : 'scheduled');
-            const groupName = (div.groups && m.groupId && div.groups[m.groupId]) ? div.groups[m.groupId].name : '';
-            html += `<div class="match-card" style="${isLive?'border:3px solid var(--out-orange);':''}">
-              <div class="match-top">
-                <span class="match-group-label">${DIVISION_PRESETS[k].short} · ${groupName}${m.time?' · '+m.time:''}</span>
-                <span class="status-pill ${isLive?'live':status}">${isLive?'진행중':(status==='done'?'종료':'예정')}</span>
-              </div>
-              <div class="teams-row" style="font-size:15px;"><span class="tname">${nameA}</span><span class="vs">VS</span><span class="tname">${nameB}</span></div>
+            html += `<div style="${isLive?'border:3px solid var(--out-orange);border-radius:12px;':''}">
+              <div style="padding:2px 6px 0;font-size:11px;color:var(--chalk-dim);">${DIVISION_PRESETS[k].short}${div.groups&&m.groupId&&div.groups[m.groupId]?' · '+div.groups[m.groupId].name:''}</div>
+              ${renderMatchCard(k,mid,m,div,true)}
             </div>`;
           });
         }
@@ -820,7 +810,8 @@ function renderCourtsView(d){
   return html;
 }
 
-function renderMatchCard(k,mid,m,div){
+function renderMatchCard(k,mid,m,div,showLiveControl){
+  if(showLiveControl===undefined) showLiveControl = false;
   const isAdmin = state.role==='admin';
   const nameA = teamName(div,m.teamA), nameB = teamName(div,m.teamB);
   const sets = m.sets||{};
@@ -875,12 +866,12 @@ function renderMatchCard(k,mid,m,div){
         <button class="btn btn-sm" onclick="forceWinner('${k}','${mid}','B')">${nameB} 승</button>
       </div>`;
     }
-    if(isAdmin && m.stage==='group'){
+    if(isAdmin && m.stage==='group' && showLiveControl){
       const liveCourt = findLiveCourtForMatch(mid);
       if(liveCourt){
         html += `<div class="match-actions"><button class="btn btn-sm btn-danger" onclick="endMatchOnCourt('${liveCourt}')">■ ${liveCourt}코트 경기 종료</button></div>`;
       } else {
-        html += `<div class="match-actions"><button class="btn btn-sm btn-primary" onclick="startMatchOnCourt('${k}','${mid}')">▶ 경기시작 (홈 화면에 표시)</button></div>`;
+        html += `<div class="match-actions"><button class="btn btn-sm btn-primary" onclick="startMatchOnCourt('${k}','${mid}')">▶ 경기시작</button></div>`;
       }
     }
     if(isAdmin){
