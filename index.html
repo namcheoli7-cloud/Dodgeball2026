@@ -201,6 +201,7 @@ const DIVISION_PRESETS = {
     bracketSets: 2, bracketDraw: true,
     finalSets: 3, finalDraw: false,
     advancePerGroup: 2,
+    thirdPlaceWildcards: 2,
     teams: ["금교초","남양주다산초","남양주미금초","남양주백봉초","남양주송라초","남양주양정초","다산가람초","다산새봄초","다산하늘초","부양초","양오초","장내초","장승초","장자초","주곡초","진접초","창현초","토평초","해밀초","화봉초"]
   },
   girlMs: {
@@ -608,7 +609,17 @@ function renderSetup(k,div){
     <div><div style="font-size:12px;color:var(--chalk-dim);">참가 학교</div><div style="font-size:20px;font-weight:800;color:var(--out-orange);">${teamCount}팀</div></div>
     <div><div style="font-size:12px;color:var(--chalk-dim);">조 편성</div><div style="font-size:20px;font-weight:800;color:var(--out-orange);">${groupCount}개조</div></div>
     <div><div style="font-size:12px;color:var(--chalk-dim);">본선 진출 기준</div><div style="font-size:20px;font-weight:800;color:var(--out-orange);">조별 ${preset.advancePerGroup}위까지</div></div>
+    ${preset.thirdPlaceWildcards?`<div><div style="font-size:12px;color:var(--chalk-dim);">와일드카드</div><div style="font-size:20px;font-weight:800;color:var(--out-orange);">3위 중 ${preset.thirdPlaceWildcards}팀</div></div>`:''}
   </div>`;
+
+  if(preset.thirdPlaceWildcards){
+    html += `<div class="card" style="border-color:var(--out-orange);margin-bottom:16px;">
+      <div style="font-weight:800;margin-bottom:6px;">⚡ 예선 3위 와일드카드 규정</div>
+      <div class="small-note">여초부는 7개조 풀리그(대부분 3팀, 여G조만 2팀) → 조 2위까지 본선 진출이 원칙이라 14팀이 되는데, 본선은 16강으로 진행되어 자리가 2개 남습니다. 이 2자리는 부전승이 아니라 <b>예선 3위팀 중 성적이 좋은 2팀</b>이 채웁니다. (여G조는 2팀뿐이라 애초에 3위가 없어 와일드카드 대상에서 제외됩니다.)</div>
+    </div>`;
+    html += renderWildcardPicker(k,div,preset);
+  }
+
   Object.entries(groups).forEach(([gid,g])=>{
     const gTeams = Object.entries(teams).filter(([id,t])=>t.groupId===gid);
     const adv = Math.min(preset.advancePerGroup, gTeams.length);
@@ -620,6 +631,53 @@ function renderSetup(k,div){
   if(groupCount===0) html += `<div class="small-note">아직 편성된 조가 없습니다.</div>`;
   return html;
 }
+
+function getThirdPlaceCandidates(k,div){
+  const groups = div.groups||{};
+  let candidates = [];
+  Object.entries(groups).forEach(([gid,g])=>{
+    const rows = getDisplayStandings(k,div,gid);
+    if(rows.length>=3){
+      const r = rows[2];
+      candidates.push({ id:r.id, name:r.name, groupName:g.name, pts:r.pts, setScore:r.setScore });
+    }
+  });
+  candidates.sort((a,b)=> b.pts-a.pts || b.setScore-a.setScore);
+  return candidates;
+}
+
+function renderWildcardPicker(k,div,preset){
+  const candidates = getThirdPlaceCandidates(k,div);
+  const selected = div.wildcards || [];
+  const isAdmin = state.role==='admin';
+  if(candidates.length===0){
+    return `<div class="small-note" style="margin-bottom:16px;">예선 결과가 아직 없어 3위 후보를 표시할 수 없습니다. 조편성·예선 진행 후 여기서 확인하세요.</div>`;
+  }
+  let html = `<div class="group-card" style="margin-bottom:16px;">
+    <div class="ghead"><div class="gname">예선 3위 후보 (승점 높은 순)</div><span class="small-note">선택됨 ${selected.length}/${preset.thirdPlaceWildcards}</span></div>
+    <div class="group-teams">`;
+  candidates.forEach(c=>{
+    const isSel = selected.includes(c.id);
+    html += `<div class="group-team-tag" style="cursor:${isAdmin?'pointer':'default'};${isSel?'border-color:var(--out-orange);color:var(--out-orange);':''}" ${isAdmin?`onclick="toggleWildcard('${k}','${c.id}')"`:''}>
+      ${isSel?'✓ ':''}${c.name} <span style="color:var(--chalk-dim);">(${c.groupName}·승점${c.pts}·세트${c.setScore})</span>
+    </div>`;
+  });
+  html += `</div>${isAdmin?`<div class="small-note" style="margin-top:8px;">클릭해서 ${preset.thirdPlaceWildcards}팀을 선택하세요. 승점이 같으면 세트득실·경기 내용을 직접 비교해서 판단하세요.</div>`:''}
+  </div>`;
+  return html;
+}
+window.toggleWildcard = function(k,teamId){
+  const div = state.data.divisions[k];
+  const preset = DIVISION_PRESETS[k];
+  let selected = (div.wildcards||[]).slice();
+  if(selected.includes(teamId)){
+    selected = selected.filter(id=>id!==teamId);
+  } else {
+    if(selected.length>=preset.thirdPlaceWildcards){ toast(`최대 ${preset.thirdPlaceWildcards}팀까지만 선택할 수 있습니다`); return; }
+    selected.push(teamId);
+  }
+  db.ref(`tournaments/${state.code}/divisions/${k}/wildcards`).set(selected);
+};
 
 // ============================================================
 // 2) 예선 경기
@@ -835,6 +893,11 @@ function getAdvancingTeams(k,div){
     const n = Math.min(preset.advancePerGroup, order.length);
     for(let i=0;i<n;i++){ advancers.push({id:order[i].id, name:order[i].name||teamName(div,order[i].id), groupName:g.name, rank:i+1}); }
   });
+  if(preset.thirdPlaceWildcards){
+    (div.wildcards||[]).forEach(id=>{
+      advancers.push({id, name:teamName(div,id), groupName:'와일드카드', rank:3});
+    });
+  }
   return advancers;
 }
 
