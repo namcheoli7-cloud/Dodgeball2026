@@ -692,7 +692,13 @@ function renderMatches(k,div){
   if(!window._expandedGroups) window._expandedGroups = new Set();
   let html='';
   Object.entries(groups).forEach(([gid,g])=>{
-    const ms = groupMatches.filter(([id,m])=>m.groupId===gid).sort((a,b)=>a[1].createdAt-b[1].createdAt);
+    const ms = groupMatches.filter(([id,m])=>m.groupId===gid).sort((a,b)=>{
+      const ta = parseTimeToMinutes(a[1].time), tb = parseTimeToMinutes(b[1].time);
+      if(ta!==null && tb!==null && ta!==tb) return ta-tb;
+      if(ta!==null && tb===null) return -1;
+      if(ta===null && tb!==null) return 1;
+      return a[1].createdAt-b[1].createdAt;
+    });
     if(ms.length===0) return;
     const key = k+'_'+gid;
     const collapsed = !window._expandedGroups.has(key);
@@ -712,6 +718,13 @@ window.toggleGroupCollapse = function(key){
   else window._expandedGroups.add(key);
   paintMain();
 };
+
+function parseTimeToMinutes(t){
+  if(!t) return null;
+  const m = String(t).match(/(\d{1,2}):(\d{2})/);
+  if(!m) return null;
+  return parseInt(m[1])*60 + parseInt(m[2]);
+}
 
 function teamName(div,id){ return id && div.teams && div.teams[id] ? div.teams[id].name : (id? id : '미정'); }
 
