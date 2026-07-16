@@ -546,6 +546,86 @@ window.openQrModal = function(){
     new QRCode(bigHolder, { text: APP_URL, width:280, height:280, colorDark:'#12151b', colorLight:'#ffffff' });
   }
 };
+
+window.openTeamModal = function(k, teamId){
+  const div = state.data.divisions[k];
+  const team = div.teams && div.teams[teamId];
+  if(!team) return;
+  const groupName = (team.groupId && div.groups && div.groups[team.groupId]) ? div.groups[team.groupId].name : '';
+
+  let rows = [];
+  Object.entries(div.matches||{}).forEach(([mid,m])=>{
+    if(m.stage!=='group') return;
+    if(m.teamA===teamId || m.teamB===teamId){
+      const isA = m.teamA===teamId;
+      const oppId = isA ? m.teamB : m.teamA;
+      rows.push({ label:'예선', time:m.time, court:m.court, m, isA, oppName: teamName(div,oppId) });
+    }
+  });
+  if(div.bracket && div.bracket.rounds){
+    Object.entries(div.bracket.rounds).forEach(([rIdx, roundMatches])=>{
+      Object.entries(roundMatches).forEach(([mid,m])=>{
+        if(m.teamA===teamId || m.teamB===teamId){
+          const isA = m.teamA===teamId;
+          const oppId = isA ? m.teamB : m.teamA;
+          const oppName = oppId ? teamName(div,oppId) : (m.status==='bye' ? '(부전승)' : 'TBD');
+          rows.push({ label:m.roundLabel||'본선', time:m.time, court:m.court, m, isA, oppName });
+        }
+      });
+    });
+  }
+  rows.sort((a,b)=>{
+    const ta=parseTimeToMinutes(a.time), tb=parseTimeToMinutes(b.time);
+    if(ta!==null && tb!==null && ta!==tb) return ta-tb;
+    if(ta!==null && tb===null) return -1;
+    if(ta===null && tb!==null) return 1;
+    return 0;
+  });
+
+  let bodyHtml = '';
+  if(rows.length===0){
+    bodyHtml = `<div class="small-note">아직 배정된 경기가 없습니다.</div>`;
+  } else {
+    rows.forEach(r=>{
+      const sets = r.m.sets||{};
+      const setCount = r.m.setsToPlay||2;
+      let winsSelf=0, winsOpp=0, played=0;
+      for(let i=0;i<setCount;i++){
+        const s = sets[i];
+        if(!s) continue;
+        played++;
+        if((s==='A' && r.isA) || (s==='B' && !r.isA)) winsSelf++; else winsOpp++;
+      }
+      const decided = !r.m.drawAllowed ? (winsSelf>Math.floor(setCount/2)||winsOpp>Math.floor(setCount/2)) : (played===setCount);
+      let statusLabel='예정', color='var(--chalk-dim)';
+      if(played>0 && !decided){ statusLabel='진행중'; color='var(--out-orange)'; }
+      if(decided && played>0){
+        if(winsSelf>winsOpp){ statusLabel='승 '+winsSelf+':'+winsOpp; color='var(--in-green)'; }
+        else if(winsOpp>winsSelf){ statusLabel='패 '+winsSelf+':'+winsOpp; color='var(--danger)'; }
+        else { statusLabel='무 '+winsSelf+':'+winsOpp; color='var(--draw-blue)'; }
+      }
+      bodyHtml += `<div class="match-card" style="margin-bottom:8px;">
+        <div class="match-top">
+          <span class="match-group-label">${r.label}${r.time?' · '+r.time:''}${r.court?' · '+r.court+'코트':''}</span>
+          <span class="status-pill" style="border-color:${color};color:${color};">${statusLabel}</span>
+        </div>
+        <div class="teams-row" style="font-size:14px;"><span class="tname">${team.name}</span><span class="vs">VS</span><span class="tname">${r.oppName}</span></div>
+      </div>`;
+    });
+  }
+
+  const overlay = document.createElement('div');
+  overlay.style.position='fixed'; overlay.style.inset='0'; overlay.style.background='rgba(18,21,27,0.95)'; overlay.style.zIndex='65';
+  overlay.style.display='flex'; overlay.style.alignItems='center'; overlay.style.justifyContent='center'; overlay.style.padding='20px';
+  overlay.innerHTML = `<div class="card" style="max-width:420px;width:100%;max-height:80vh;overflow-y:auto;">
+    <div class="flex-between" style="margin-bottom:12px;">
+      <strong style="font-size:16px;">${team.name}${groupName?' · '+groupName:''}</strong>
+      <button class="btn btn-ghost btn-sm" onclick="this.closest('div[style*=fixed]').remove()">✕</button>
+    </div>
+    ${bodyHtml}
+  </div>`;
+  document.body.appendChild(overlay);
+};
 function subtabBtn(key,label){
   return `<div class="subtab ${state.subtab===key?'active':''}" onclick="state.subtab='${key}';paintMain()">${label}</div>`;
 }
@@ -628,12 +708,13 @@ function renderSetup(k,div){
     html += renderWildcardPicker(k,div,preset);
   }
 
-  Object.entries(groups).forEach(([gid,g])=>{
+  Object.entries(groups).forEach(([gid,g],gi)=>{
     const gTeams = Object.entries(teams).filter(([id,t])=>t.groupId===gid);
     const adv = Math.min(preset.advancePerGroup, gTeams.length);
     html += `<div class="group-card">
       <div class="ghead"><div class="gname">${g.name}</div><span class="small-note">${gTeams.length}팀 · 상위 ${adv}팀 진출</span></div>
-      <div class="group-teams">${gTeams.map(([id,t])=>`<div class="group-team-tag">${t.name}</div>`).join('')}</div>
+      <div class="group-teams">${gTeams.map(([id,t])=>`<div class="group-team-tag" style="cursor:pointer;" onclick="openTeamModal('${k}','${id}')">${t.name}</div>`).join('')}</div>
+      ${gi===0?'<div class="small-note" style="margin-top:6px;">학교 이름을 누르면 일정·결과를 볼 수 있어요.</div>':''}
     </div>`;
   });
   if(groupCount===0) html += `<div class="small-note">아직 편성된 조가 없습니다.</div>`;
