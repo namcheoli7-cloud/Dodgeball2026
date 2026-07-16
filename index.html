@@ -514,7 +514,7 @@ function paintMain(){
     </div>`;
     body += `<div class="subtabs">
       ${subtabBtn('setup','조편성')}
-      ${subtabBtn('matches','예선경기')}
+      ${subtabBtn('matches','예선경기결과')}
       ${subtabBtn('standings','순위표')}
       ${subtabBtn('bracket','본선대진')}
     </div>`;
@@ -692,7 +692,7 @@ function renderSetup(k,div){
   const groupCount = Object.keys(groups).length;
   const teamCount = Object.keys(teams).length;
 
-  let html = `<div class="section-title">조편성</div>`;
+  let html = `<div class="section-title">조편성 <span style="color:var(--chalk-dim);font-weight:400;font-size:13px;">(학교 이름을 누르면 일정·결과를 볼 수 있어요)</span></div>`;
   html += `<div class="card" style="margin-bottom:16px;display:flex;gap:28px;flex-wrap:wrap;">
     <div><div style="font-size:12px;color:var(--chalk-dim);">참가 학교</div><div style="font-size:20px;font-weight:800;color:var(--out-orange);">${teamCount}팀</div></div>
     <div><div style="font-size:12px;color:var(--chalk-dim);">조 편성</div><div style="font-size:20px;font-weight:800;color:var(--out-orange);">${groupCount}개조</div></div>
@@ -714,7 +714,6 @@ function renderSetup(k,div){
     html += `<div class="group-card">
       <div class="ghead"><div class="gname">${g.name}</div><span class="small-note">${gTeams.length}팀 · 상위 ${adv}팀 진출</span></div>
       <div class="group-teams">${gTeams.map(([id,t])=>`<div class="group-team-tag" style="cursor:pointer;" onclick="openTeamModal('${k}','${id}')">${t.name}</div>`).join('')}</div>
-      ${gi===0?'<div class="small-note" style="margin-top:6px;">학교 이름을 누르면 일정·결과를 볼 수 있어요.</div>':''}
     </div>`;
   });
   if(groupCount===0) html += `<div class="small-note">아직 편성된 조가 없습니다.</div>`;
