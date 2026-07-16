@@ -307,6 +307,8 @@ const TOURNAMENT_ID = "구리남양주2026";
 const ADMIN_PASSWORD = "마석중2026";
 // 배포된 앱 주소 (관리자 홈 QR/링크용)
 const APP_URL = "https://namcheoli7-cloud.github.io/Dodgeball2026/";
+// 상단바에 표시할 대회명
+const APP_TITLE = "2026 구리남양주 학교스포츠클럽 축제";
 
 // ---------- 전역 상태 ----------
 let state = {
@@ -360,7 +362,7 @@ function bootstrapAndEnter(){
     const initDivisions = {};
     DIVISION_ORDER.forEach(k=>{ initDivisions[k] = buildDivisionData(k); });
     db.ref('tournaments/'+TOURNAMENT_ID).set({
-      meta:{ name:"구리남양주 학교스포츠클럽 축제 · 피구", createdAt: Date.now(), adminPw: ADMIN_PASSWORD, visitCount: 1 },
+      meta:{ name:APP_TITLE, createdAt: Date.now(), adminPw: ADMIN_PASSWORD, visitCount: 1 },
       divisions: initDivisions
     }).then(()=>{ renderMain(); });
   });
@@ -458,7 +460,7 @@ function paintMain(){
   const d = state.data;
   let body = `
   <div class="topbar">
-    <div class="brand"><div class="dot"></div> ${d.meta.name}</div>
+    <div class="brand"><div class="dot"></div> ${APP_TITLE}</div>
     <div style="display:flex;align-items:center;gap:10px;">
       <span class="role-badge ${state.role==='admin'?'admin':''}">${state.role==='admin'?'운영단':'참관'}</span>
       ${state.role==='admin'
