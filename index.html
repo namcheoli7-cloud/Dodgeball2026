@@ -314,7 +314,8 @@ let state = {
   division: null,
   subtab: null,      // null (menu) | 'setup' | 'groupResults' | 'bracket'
   selectedGroup: null,
-  mainView: 'home',     // 'home' | 'courts'
+  mainView: 'home',     // 'home' | 'courts' | 'checklist'
+  checklistDivision: null,
   data: null,           // firebase live data
 };
 
@@ -467,12 +468,15 @@ function paintMain(){
   <div class="wrap">`;
 
   body += `<div class="tabs" style="margin-top:2px;">
-    <div class="tab ${state.mainView!=='courts'?'active':''}" onclick="state.mainView='home';paintMain()">🏠 종별</div>
+    <div class="tab ${state.mainView==='home'?'active':''}" onclick="state.mainView='home';paintMain()">🏠 종별</div>
     <div class="tab ${state.mainView==='courts'?'active':''}" onclick="state.mainView='courts';paintMain()">🏐 코트현황</div>
+    ${state.role==='admin'?`<div class="tab ${state.mainView==='checklist'?'active':''}" onclick="state.mainView='checklist';paintMain()">✅ 체크리스트</div>`:''}
   </div>`;
 
   if(state.mainView==='courts'){
     body += renderCourtsView(d);
+  } else if(state.mainView==='checklist' && state.role==='admin'){
+    body += renderChecklistView(d);
   } else if(!state.division){
     body += `
     <div class="hero">
@@ -680,7 +684,9 @@ window.submitAdminLogin = function(){
   paintMain();
 };
 window.backToSpectator = function(){
-  state.role='spectator'; saveLocal(); paintMain();
+  state.role='spectator';
+  if(state.mainView==='checklist') state.mainView='home';
+  saveLocal(); paintMain();
 };
 function renderSubtab(k,div){
   if(state.subtab==='setup') return renderSetup(k,div);
@@ -890,6 +896,61 @@ const DIVISION_DATE = [
   { label:'7월 18일(토) · 남초·여초', divs:['boyEl','girlEl'] },
   { label:'7월 19일(일) · 여중·여고', divs:['girlMs','girlHs'] }
 ];
+
+const CHECKLIST_ITEMS = [
+  { key:'doc', label:'내부결재 공문 및 선수명단 제출' },
+  { key:'parking', label:'주차권 배부' },
+  { key:'overtime', label:'초과근무 확인서 요청사항' }
+];
+
+function renderChecklistView(d){
+  if(!state.checklistDivision){
+    let html = `<div class="section-title" style="margin-top:8px;">✅ 참가교 체크리스트</div>
+    <div class="small-note" style="margin-bottom:14px;">확인할 종별을 선택하세요.</div>
+    <div class="division-grid">`;
+    DIVISION_ORDER.forEach(k=>{
+      const div = d.divisions[k];
+      const teamCount = Object.keys(div.teams||{}).length;
+      html += `<div class="division-card" onclick="state.checklistDivision='${k}';paintMain()">
+        <div class="dtitle">${div.label}</div>
+        <div class="dmeta">${teamCount}팀</div>
+      </div>`;
+    });
+    html += `</div>`;
+    return html;
+  }
+
+  const k = state.checklistDivision;
+  const div = d.divisions[k];
+  if(!div){ state.checklistDivision=null; return renderChecklistView(d); }
+  const teams = Object.entries(div.teams||{}).sort((a,b)=>a[1].name.localeCompare(b[1].name,'ko'));
+
+  let html = `<div class="flex-between" style="margin-bottom:14px;">
+    <button class="btn btn-ghost btn-sm" onclick="state.checklistDivision=null;paintMain()">&larr; 종별 선택</button>
+    <div style="font-weight:800;">${div.label} 체크리스트</div>
+    <div></div>
+  </div>`;
+
+  teams.forEach(([id,t])=>{
+    const cl = t.checklist || {};
+    const doneCount = CHECKLIST_ITEMS.filter(it=>cl[it.key]).length;
+    html += `<div class="group-card">
+      <div class="ghead"><div class="gname">${t.name}</div><span class="small-note">${doneCount}/${CHECKLIST_ITEMS.length}</span></div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        ${CHECKLIST_ITEMS.map(it=>`
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;">
+            <input type="checkbox" ${cl[it.key]?'checked':''} onchange="toggleChecklistItem('${k}','${id}','${it.key}',this.checked)" style="width:20px;height:20px;cursor:pointer;flex-shrink:0;accent-color:var(--out-orange);">
+            <span>${it.label}</span>
+          </label>`).join('')}
+      </div>
+    </div>`;
+  });
+  if(teams.length===0) html += `<div class="small-note">참가교가 없습니다.</div>`;
+  return html;
+}
+window.toggleChecklistItem = function(k, teamId, itemKey, value){
+  db.ref(`tournaments/${state.code}/divisions/${k}/teams/${teamId}/checklist/${itemKey}`).set(value);
+};
 
 function renderCourtsView(d){
   const courts = ['1','2','3'];
