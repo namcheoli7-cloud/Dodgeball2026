@@ -29,6 +29,7 @@ body{
   color:var(--chalk);
   font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,'Malgun Gothic',sans-serif;
   min-height:100vh;
+  word-break:keep-all;
   background-image:
     radial-gradient(circle at 50% 0%, rgba(255,122,26,0.06), transparent 55%);
 }
@@ -460,7 +461,7 @@ function paintMain(){
   const d = state.data;
   let body = `
   <div class="topbar">
-    <div class="brand"><div class="dot"></div> <span style="line-height:1.3;">2026&nbsp;구리남양주 학교스포츠클럽&nbsp;축제</span></div>
+    <div class="brand"><div class="dot"></div> <span style="line-height:1.3;word-break:keep-all;">2026&nbsp;구리남양주 학교스포츠클럽&nbsp;축제</span></div>
     <div style="display:flex;align-items:center;gap:10px;">
       <span class="role-badge ${state.role==='admin'?'admin':''}">${state.role==='admin'?'운영단':'참관'}</span>
       ${state.role==='admin'
