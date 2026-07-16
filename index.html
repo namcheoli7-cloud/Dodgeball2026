@@ -748,7 +748,10 @@ function renderMatchCard(k,mid,m,div){
       <span class="status-pill ${status}">${status==='done'?'종료':status==='live'?'진행중':'예정'}</span>
     </div>`;
   if(m.stage==='group' && isAdmin){
-    html += `<input type="text" value="${m.court||''}" placeholder="코트 번호 (예: 1)" onchange="setMatchCourt('${k}','${mid}',this.value)" style="width:100%;margin-bottom:8px;padding:6px 8px;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);border-radius:6px;font-size:12px;">`;
+    html += `<div style="display:flex;gap:6px;margin-bottom:8px;">
+      <input type="text" value="${m.time||''}" placeholder="경기시간 (예: 10:30)" onchange="setMatchTime('${k}','${mid}',this.value)" style="flex:1;padding:6px 8px;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);border-radius:6px;font-size:12px;">
+      <input type="text" value="${m.court||''}" placeholder="코트 번호 (예: 1)" onchange="setMatchCourt('${k}','${mid}',this.value)" style="flex:1;padding:6px 8px;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);border-radius:6px;font-size:12px;">
+    </div>`;
   }
   html += `<div class="teams-row">
       <span class="tname ${winner==='A'?'winner':''}">${nameA}</span>
@@ -1078,6 +1081,9 @@ window.openBracketMatch = function(k,mid){
 // setSetResult / forceWinner / resetMatch 는 그룹경기와 본선경기 mid 포맷이 다르므로 분기
 window.setMatchCourt = function(k,mid,value){
   db.ref(`tournaments/${state.code}/divisions/${k}/matches/${mid}/court`).set(value || null);
+};
+window.setMatchTime = function(k,mid,value){
+  db.ref(`tournaments/${state.code}/divisions/${k}/matches/${mid}/time`).set(value || null);
 };
 window.setSetResult = function(k,mid,setIdx,winner){
   if(mid.startsWith('BRACKET:')){
