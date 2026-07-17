@@ -34,6 +34,9 @@ body{
     radial-gradient(circle at 50% 0%, rgba(255,122,26,0.06), transparent 55%);
 }
 .mono{font-family:'Consolas','SF Mono',monospace;}
+.score-input::-webkit-outer-spin-button,
+.score-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.score-input{-moz-appearance:textfield;}
 h1,h2,h3{font-family:'Segoe UI',sans-serif;letter-spacing:0.02em;margin:0;}
 .wrap{max-width:1100px;margin:0 auto;padding:20px 16px 80px;}
 
@@ -1074,6 +1077,9 @@ function renderMatchCard(k,mid,m,div,opts){
     </div>`;
   if(m.teamA && m.teamB){
     if(showScoreEntry){
+      if(isAdmin){
+        html += `<div class="small-note" style="text-align:center;margin-bottom:6px;">내야에 남은 학생 수 입력</div>`;
+      }
       html += `<div class="sets-row">`;
       for(let i=0;i<setCount;i++){
         const s = sets[i];
@@ -1085,12 +1091,12 @@ function renderMatchCard(k,mid,m,div,opts){
           <div style="display:flex;gap:4px;justify-content:center;align-items:flex-end;">
             <div style="text-align:center;">
               <div style="font-size:9px;color:var(--chalk-dim);margin-bottom:2px;">${nameA.slice(0,3)}</div>
-              <input type="number" min="0" max="20" inputmode="numeric" value="${valA}" ${isAdmin?`onchange="setSetScore('${k}','${mid}',${i},'a',this.value)"`:'disabled'} style="width:40px;padding:4px 2px;text-align:center;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);border-radius:4px;font-size:13px;">
+              <input type="number" min="0" max="20" inputmode="numeric" class="score-input" value="${valA}" ${isAdmin?`onchange="setSetScore('${k}','${mid}',${i},'a',this.value)"`:'disabled'} style="width:40px;padding:4px 2px;text-align:center;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);border-radius:4px;font-size:13px;">
             </div>
             <span style="color:var(--chalk-dim);font-size:11px;padding-bottom:6px;">:</span>
             <div style="text-align:center;">
               <div style="font-size:9px;color:var(--chalk-dim);margin-bottom:2px;">${nameB.slice(0,3)}</div>
-              <input type="number" min="0" max="20" inputmode="numeric" value="${valB}" ${isAdmin?`onchange="setSetScore('${k}','${mid}',${i},'b',this.value)"`:'disabled'} style="width:40px;padding:4px 2px;text-align:center;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);border-radius:4px;font-size:13px;">
+              <input type="number" min="0" max="20" inputmode="numeric" class="score-input" value="${valB}" ${isAdmin?`onchange="setSetScore('${k}','${mid}',${i},'b',this.value)"`:'disabled'} style="width:40px;padding:4px 2px;text-align:center;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);border-radius:4px;font-size:13px;">
             </div>
           </div>
           ${r?`<div style="text-align:center;font-size:10px;margin-top:4px;font-weight:700;color:${r==='A'?'var(--in-green)':r==='B'?'var(--danger)':'var(--draw-blue)'};">${r==='A'?nameA.slice(0,4)+' 승':r==='B'?nameB.slice(0,4)+' 승':'무'}</div>`:''}
