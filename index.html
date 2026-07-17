@@ -605,19 +605,12 @@ window.openTeamModal = function(k, teamId){
     bodyHtml = `<div class="small-note">아직 배정된 경기가 없습니다.</div>`;
   } else {
     rows.forEach(r=>{
-      const sets = r.m.sets||{};
-      const setCount = r.m.setsToPlay||2;
-      let winsSelf=0, winsOpp=0, played=0;
-      for(let i=0;i<setCount;i++){
-        const s = sets[i];
-        if(!s) continue;
-        played++;
-        if((s==='A' && r.isA) || (s==='B' && !r.isA)) winsSelf++; else winsOpp++;
-      }
-      const decided = !r.m.drawAllowed ? (winsSelf>Math.floor(setCount/2)||winsOpp>Math.floor(setCount/2)) : (played===setCount);
+      const st = matchStats(r.m);
+      const winsSelf = r.isA ? st.winsA : st.winsB;
+      const winsOpp = r.isA ? st.winsB : st.winsA;
       let statusLabel='예정', color='var(--chalk-dim)';
-      if(played>0 && !decided){ statusLabel='진행중'; color='var(--out-orange)'; }
-      if(decided && played>0){
+      if(st.played>0 && !st.decided){ statusLabel='진행중'; color='var(--out-orange)'; }
+      if(st.decided && st.played>0){
         if(winsSelf>winsOpp){ statusLabel='승 '+winsSelf+':'+winsOpp; color='var(--in-green)'; }
         else if(winsOpp>winsSelf){ statusLabel='패 '+winsSelf+':'+winsOpp; color='var(--danger)'; }
         else { statusLabel='무 '+winsSelf+':'+winsOpp; color='var(--draw-blue)'; }
@@ -843,19 +836,20 @@ function renderStandingsTableForGroup(k,div,gid,g){
   const rows = getDisplayStandings(k,div,gid);
   if(rows.length===0) return `<div class="small-note">순위 정보가 없습니다.</div>`;
   const adv = Math.min(preset.advancePerGroup, rows.length);
-  const hasTie = rows.some((r,i)=> i>0 && r.pts===rows[i-1].pts);
-  let html = `<div class="small-note">승점(승3·무1·패0)으로 자동 정렬됩니다. ${state.role==='admin'?'승점이 같은 팀끼리는 앱이 임의로 순서를 매기지 않으니, 총 내야 득점수·승자승·연장전/골든볼 결과를 보고 아래 화살표로 직접 순서를 조정하세요.':'승점이 같은 팀의 순서는 운영단이 직접 조정합니다.'}</div>
+  const isTied = (a,b)=> a.pts===b.pts && a.setScore===b.setScore;
+  const hasTie = rows.some((r,i)=> i>0 && isTied(r,rows[i-1]));
+  let html = `<div class="small-note">승점 → 총 내야 득점수 순으로 자동 정렬됩니다. ${state.role==='admin'?'그래도 동률이면 승자승·연장전/골든볼 결과를 보고 아래 화살표로 직접 순서를 조정하세요.':'동률인 경우 순서는 운영단이 직접 조정합니다.'}</div>
   <div class="small-note" style="margin-top:4px;">승점이 동률인 경우: 총 내야 득점수 &gt; 승자승 &gt; 연장전(2분) &gt; 골든볼 순으로 결정</div>`;
   if(hasTie && state.role==='admin'){
     html += `<div class="small-note" style="color:var(--out-orange);margin-top:4px;">⚠ 동률 있음 · 순서 확인 필요</div>`;
   }
   html += `<table class="standings"><thead><tr>
-    <th></th><th>학교</th><th>경기</th><th>승</th><th>무</th><th>패</th><th>승점</th><th>세트득실(참고)</th>${state.role==='admin'?'<th>순서조정</th>':''}
+    <th></th><th>학교</th><th>경기</th><th>승</th><th>무</th><th>패</th><th>승점</th><th>내야득점</th>${state.role==='admin'?'<th>순서조정</th>':''}
   </tr></thead><tbody>`;
   rows.forEach((r,i)=>{
-    const tied = (i>0 && r.pts===rows[i-1].pts) || (i<rows.length-1 && r.pts===rows[i+1].pts);
-    const canUp = i>0 && rows[i-1].pts===r.pts;
-    const canDown = i<rows.length-1 && rows[i+1].pts===r.pts;
+    const tied = (i>0 && isTied(r,rows[i-1])) || (i<rows.length-1 && isTied(r,rows[i+1]));
+    const canUp = i>0 && isTied(r,rows[i-1]);
+    const canDown = i<rows.length-1 && isTied(r,rows[i+1]);
     html += `<tr class="${i<adv?'advance':''}">
       <td class="rank">${i+1}</td><td>${r.name}${tied?' <span style="color:var(--out-orange);">•</span>':''}</td><td>${r.played}</td><td>${r.win}</td><td>${r.draw}</td><td>${r.lose}</td><td>${r.pts}</td><td>${r.setScore}</td>
       ${state.role==='admin'?`<td class="reorder-btns">
@@ -868,13 +862,13 @@ function renderStandingsTableForGroup(k,div,gid,g){
   return html;
 }
 
-// 수동 순위 오버라이드: 승점이 같은 팀끼리만 순서를 바꿀 수 있습니다
+// 수동 순위 오버라이드: 승점·내야득점수까지 같은 팀끼리만 순서를 바꿀 수 있습니다
 window.manualReorder = function(k,gid,idx,dir){
   const div = state.data.divisions[k];
   const rows = getDisplayStandings(k,div,gid);
   const j = idx+dir;
   if(j<0||j>=rows.length) return;
-  if(rows[idx].pts !== rows[j].pts){ toast('승점이 다른 팀끼리는 순서를 바꿀 수 없습니다'); return; }
+  if(rows[idx].pts !== rows[j].pts || rows[idx].setScore !== rows[j].setScore){ toast('승점·내야득점수가 다른 팀끼리는 순서를 바꿀 수 없습니다'); return; }
   const ids = rows.map(r=>r.id);
   [ids[idx],ids[j]]=[ids[j],ids[idx]];
   db.ref(`tournaments/${state.code}/divisions/${k}/groups/${gid}/manualOrder`).set(ids);
@@ -885,6 +879,38 @@ function parseTimeToMinutes(t){
   const m = String(t).match(/(\d{1,2}):(\d{2})/);
   if(!m) return null;
   return parseInt(m[1])*60 + parseInt(m[2]);
+}
+
+// 세트 결과 판정: setObj = {a, b} (양 팀 내야 득점/생존인원). 반환: 'A'|'B'|'tie'|null(미입력)
+function setResult(setObj){
+  if(!setObj || setObj.a===undefined || setObj.a===null || setObj.b===undefined || setObj.b===null) return null;
+  const a = Number(setObj.a), b = Number(setObj.b);
+  if(a > b) return 'A';
+  if(b > a) return 'B';
+  return 'tie';
+}
+// 경기 전체 통계: 세트별 내야득점 입력값으로부터 승/패/무 및 총 내야득점 합계를 계산
+function matchStats(m){
+  const sets = m.sets||{};
+  const setCount = m.setsToPlay||2;
+  let winsA=0, winsB=0, played=0, sumA=0, sumB=0;
+  for(let i=0;i<setCount;i++){
+    const s = sets[i];
+    const r = setResult(s);
+    if(r===null) continue;
+    played++;
+    sumA += Number(s.a)||0; sumB += Number(s.b)||0;
+    if(r==='A') winsA++;
+    else if(r==='B') winsB++;
+  }
+  const decided = !m.drawAllowed ? (winsA>Math.floor(setCount/2) || winsB>Math.floor(setCount/2)) : (played===setCount);
+  let winner = null;
+  if(decided && played>0){
+    if(winsA>winsB) winner='A';
+    else if(winsB>winsA) winner='B';
+    else winner='draw';
+  }
+  return {winsA,winsB,played,setCount,decided,winner,sumA,sumB};
 }
 
 function teamName(div,id){ return id && div.teams && div.teams[id] ? div.teams[id].name : (id? id : '미정'); }
@@ -999,11 +1025,8 @@ function renderCourtsView(d){
     html += `<div class="empty-state"><div class="big">🏐</div>이 코트에 코트 번호가 지정된 경기가 없습니다.</div>`;
   } else {
     matches.forEach(({k,mid,m,div})=>{
-      const sets = m.sets||{}; const setCount = m.setsToPlay||2;
-      let winsA=0,winsB=0;
-      for(let i=0;i<setCount;i++){ if(sets[i]==='A')winsA++; if(sets[i]==='B')winsB++; }
-      const decided = !m.drawAllowed ? (winsA>Math.floor(setCount/2)||winsB>Math.floor(setCount/2)) : (winsA+winsB===setCount);
-      const isLive = (winsA+winsB)>0 && !decided;
+      const st = matchStats(m);
+      const isLive = st.played>0 && !st.decided;
       html += `<div style="${isLive?'border:3px solid var(--out-orange);border-radius:12px;':''}">
         <div style="padding:2px 6px 0;font-size:11px;color:var(--chalk-dim);">${DIVISION_PRESETS[k].short}${div.groups&&m.groupId&&div.groups[m.groupId]?' · '+div.groups[m.groupId].name:''}</div>
         ${renderMatchCard(k,mid,m,div,{showTimeCourtInputs:false, showScoreEntry:true})}
@@ -1022,15 +1045,12 @@ function renderMatchCard(k,mid,m,div,opts){
   const nameA = teamName(div,m.teamA), nameB = teamName(div,m.teamB);
   const sets = m.sets||{};
   const setCount = m.setsToPlay||2;
-  let winsA=0, winsB=0;
-  for(let i=0;i<setCount;i++){ const s=sets[i]; if(s==='A') winsA++; else if(s==='B') winsB++; }
-  let status='scheduled', winner=null;
-  const decided = !m.drawAllowed ? (winsA>Math.floor(setCount/2) || winsB>Math.floor(setCount/2)) : (winsA+winsB===setCount);
-  if(winsA+winsB>0) status='live';
-  if(decided && (winsA+winsB)>0){
-    status='done';
-    if(winsA>winsB) winner='A'; else if(winsB>winsA) winner='B'; else winner='draw';
-  }
+  const st = matchStats(m);
+  const winsA = st.winsA, winsB = st.winsB;
+  const winner = st.winner;
+  let status = 'scheduled';
+  if(st.played>0 && !st.decided) status='live';
+  if(st.decided && st.played>0) status='done';
   let html = `<div class="match-card">
     <div class="match-top">
       <span class="match-group-label">${m.stage==='bracket'?(m.roundLabel||'본선'):'예선'}${(!emphasizeTimeCourt && m.time)?' · '+m.time:''}${(!emphasizeTimeCourt && m.court)?' · '+m.court+'코트':''}</span>
@@ -1056,20 +1076,31 @@ function renderMatchCard(k,mid,m,div,opts){
     if(showScoreEntry){
       html += `<div class="sets-row">`;
       for(let i=0;i<setCount;i++){
-        const cur = sets[i];
+        const s = sets[i];
+        const r = setResult(s);
+        const valA = (s && s.a!==undefined && s.a!==null) ? s.a : '';
+        const valB = (s && s.b!==undefined && s.b!==null) ? s.b : '';
         html += `<div class="set-box">
           <div class="set-label">SET ${i+1}</div>
-          <div class="set-pick">
-            <button class="${cur==='A'?'on':''}" ${isAdmin?`onclick="setSetResult('${k}','${mid}',${i},'A')"`:'disabled'}>${nameA.slice(0,4)}</button>
-            <button class="${cur==='B'?'on':''}" ${isAdmin?`onclick="setSetResult('${k}','${mid}',${i},'B')"`:'disabled'}>${nameB.slice(0,4)}</button>
+          <div style="display:flex;gap:4px;justify-content:center;align-items:flex-end;">
+            <div style="text-align:center;">
+              <div style="font-size:9px;color:var(--chalk-dim);margin-bottom:2px;">${nameA.slice(0,3)}</div>
+              <input type="number" min="0" max="20" inputmode="numeric" value="${valA}" ${isAdmin?`onchange="setSetScore('${k}','${mid}',${i},'a',this.value)"`:'disabled'} style="width:40px;padding:4px 2px;text-align:center;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);border-radius:4px;font-size:13px;">
+            </div>
+            <span style="color:var(--chalk-dim);font-size:11px;padding-bottom:6px;">:</span>
+            <div style="text-align:center;">
+              <div style="font-size:9px;color:var(--chalk-dim);margin-bottom:2px;">${nameB.slice(0,3)}</div>
+              <input type="number" min="0" max="20" inputmode="numeric" value="${valB}" ${isAdmin?`onchange="setSetScore('${k}','${mid}',${i},'b',this.value)"`:'disabled'} style="width:40px;padding:4px 2px;text-align:center;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);border-radius:4px;font-size:13px;">
+            </div>
           </div>
+          ${r?`<div style="text-align:center;font-size:10px;margin-top:4px;font-weight:700;color:${r==='A'?'var(--in-green)':r==='B'?'var(--danger)':'var(--draw-blue)'};">${r==='A'?nameA.slice(0,4)+' 승':r==='B'?nameB.slice(0,4)+' 승':'무'}</div>`:''}
         </div>`;
       }
       html += `</div>`;
       if(winner==='draw' && status==='done'){
         html += `<div class="small-note" style="text-align:center;">세트 무승부 — 승점 1:1 처리됩니다.</div>`;
       }
-      if(isAdmin && m.stage==='bracket' && (winsA+winsB===setCount) && winsA===winsB){
+      if(isAdmin && m.stage==='bracket' && st.played===setCount && winsA===winsB){
         html += `<div class="match-actions">
           <span class="small-note">동률! 연장전/골든볼 결과로 승자를 지정하세요:</span>
         </div>
@@ -1100,26 +1131,21 @@ function computeStandings(k,div,gid){
 
   matches.forEach(([mid,m])=>{
     if(!m.teamA||!m.teamB) return;
-    const sets = m.sets||{};
-    const setCount = m.setsToPlay||2;
-    let winsA=0,winsB=0, playedSets=0;
-    for(let i=0;i<setCount;i++){ const s=sets[i]; if(s){ playedSets++; if(s==='A')winsA++; else winsB++; } }
-    if(playedSets===0) return;
-    const decided = !m.drawAllowed ? (winsA>Math.floor(setCount/2)||winsB>Math.floor(setCount/2)) : (playedSets===setCount);
-    if(!decided) return;
+    const st = matchStats(m);
+    if(st.played===0 || !st.decided) return;
     const A=table[m.teamA], B=table[m.teamB];
     if(!A||!B) return;
     A.played++; B.played++;
-    A.setScore += winsA; B.setScore += winsB;
-    if(winsA>winsB){ A.win++; A.pts+=3; B.lose++; }
-    else if(winsB>winsA){ B.win++; B.pts+=3; A.lose++; }
+    A.setScore += st.sumA; B.setScore += st.sumB;
+    if(st.winsA>st.winsB){ A.win++; A.pts+=3; B.lose++; }
+    else if(st.winsB>st.winsA){ B.win++; B.pts+=3; A.lose++; }
     else { A.draw++; B.draw++; A.pts+=1; B.pts+=1; }
   });
 
-  // 승점으로만 자동 정렬합니다. 승점이 같으면(총 내야 득점수·승자승·연장전·골든볼 등
-  // 앱이 직접 판단할 수 없는 기준이므로) 순서를 강제하지 않고 관리자가 직접 조정합니다.
+  // 1순위 승점, 2순위 총 내야 득점수(실제 세트별 생존인원 합)까지는 자동 정렬합니다.
+  // 승자승·연장전·골든볼은 앱이 판단할 수 없는 기준이므로 그 이후는 관리자가 직접 조정합니다.
   let arr = Object.values(table);
-  arr.sort((a,b)=> b.pts-a.pts);
+  arr.sort((a,b)=> b.pts-a.pts || b.setScore-a.setScore);
   return arr;
 }
 
@@ -1144,11 +1170,7 @@ function isGroupStageComplete(k,div){
   if(groupMatches.length===0) return false;
   return groupMatches.every(([id,m])=>{
     if(!m.teamA||!m.teamB) return true;
-    const sets=m.sets||{}; const setCount=m.setsToPlay||2;
-    let played=0,winsA=0,winsB=0;
-    for(let i=0;i<setCount;i++){ if(sets[i]){played++; if(sets[i]==='A')winsA++; else winsB++;} }
-    const decided = !m.drawAllowed ? (winsA>Math.floor(setCount/2)||winsB>Math.floor(setCount/2)) : (played===setCount);
-    return decided;
+    return matchStats(m).decided;
   });
 }
 
@@ -1265,11 +1287,8 @@ function renderBracket(k,div){
     matches.forEach(([mid,m])=>{
       const nameA = m.teamA? teamName(div,m.teamA) : null;
       const nameB = m.teamB? teamName(div,m.teamB) : null;
-      const sets = m.sets||{};
-      const setCount = m.setsToPlay||3;
-      let winsA=0,winsB=0;
-      for(let i=0;i<setCount;i++){ if(sets[i]==='A')winsA++; if(sets[i]==='B')winsB++; }
-      const winner = winsA>winsB && winsA>Math.floor(setCount/2) ? 'A' : (winsB>winsA && winsB>Math.floor(setCount/2) ? 'B' : null);
+      const bst = matchStats(m);
+      const winner = bst.winner==='A' ? 'A' : (bst.winner==='B' ? 'B' : null);
       const canEditSlots = isAdmin && rIdx===0; // 팀 배치는 1라운드에서만 직접 지정, 이후는 승자 자동 진출
       html += `<div class="bmatch">`;
       if(canEditSlots && !m.teamA){
@@ -1337,20 +1356,22 @@ window.setMatchCourt = function(k,mid,value){
 window.setMatchTime = function(k,mid,value){
   db.ref(`tournaments/${state.code}/divisions/${k}/matches/${mid}/time`).set(value || null);
 };
-window.setSetResult = function(k,mid,setIdx,winner){
+window.setSetScore = function(k, mid, setIdx, side, value){
+  const num = (value==='' || value===null || value===undefined) ? null : Math.max(0, parseInt(value)||0);
   if(mid.startsWith('BRACKET:')){
     const [,roundIdx,realMid] = mid.split(':');
-    db.ref(`tournaments/${state.code}/divisions/${k}/bracket/rounds/${roundIdx}/${realMid}/sets/${setIdx}`).set(winner)
+    db.ref(`tournaments/${state.code}/divisions/${k}/bracket/rounds/${roundIdx}/${realMid}/sets/${setIdx}/${side}`).set(num)
       .then(()=>{ propagateBracketWinner(k,roundIdx,realMid); refreshBracketModal(k,mid); });
     return;
   }
-  db.ref(`tournaments/${state.code}/divisions/${k}/matches/${mid}/sets/${setIdx}`).set(winner);
+  db.ref(`tournaments/${state.code}/divisions/${k}/matches/${mid}/sets/${setIdx}/${side}`).set(num);
 };
 window.forceWinner = function(k,mid,winner){
+  const setObj = winner==='A' ? {a:1,b:0} : {a:0,b:1};
   if(mid.startsWith('BRACKET:')){
     const [,roundIdx,realMid] = mid.split(':');
     const m = state.data.divisions[k].bracket.rounds[roundIdx][realMid];
-    db.ref(`tournaments/${state.code}/divisions/${k}/bracket/rounds/${roundIdx}/${realMid}/sets/${m.setsToPlay}`).set(winner)
+    db.ref(`tournaments/${state.code}/divisions/${k}/bracket/rounds/${roundIdx}/${realMid}/sets/${m.setsToPlay}`).set(setObj)
       .then(()=>{
         db.ref(`tournaments/${state.code}/divisions/${k}/bracket/rounds/${roundIdx}/${realMid}/setsToPlay`).set(m.setsToPlay+1);
         setTimeout(()=>{ propagateBracketWinner(k,roundIdx,realMid); refreshBracketModal(k,mid); },300);
@@ -1359,7 +1380,7 @@ window.forceWinner = function(k,mid,winner){
   }
   const div = state.data.divisions[k];
   const m = div.matches[mid];
-  db.ref(`tournaments/${state.code}/divisions/${k}/matches/${mid}/sets/${m.setsToPlay}`).set(winner)
+  db.ref(`tournaments/${state.code}/divisions/${k}/matches/${mid}/sets/${m.setsToPlay}`).set(setObj)
     .then(()=>{ db.ref(`tournaments/${state.code}/divisions/${k}/matches/${mid}/setsToPlay`).set(m.setsToPlay+1); });
 };
 window.resetMatch = function(k,mid){
@@ -1388,13 +1409,9 @@ function propagateBracketWinner(k,roundIdx,mid,forcedWinnerId){
   const m = rounds[roundIdx][mid];
   let winnerId = forcedWinnerId;
   if(!winnerId){
-    const setCount = m.setsToPlay||3;
-    const sets = m.sets||{};
-    let winsA=0,winsB=0,played=0;
-    for(let i=0;i<setCount;i++){ if(sets[i]){played++; if(sets[i]==='A')winsA++; else winsB++;} }
-    const decided = !m.drawAllowed ? (winsA>Math.floor(setCount/2)||winsB>Math.floor(setCount/2)) : (played===setCount && winsA!==winsB);
-    if(!decided) return;
-    winnerId = winsA>winsB ? m.teamA : m.teamB;
+    const st = matchStats(m);
+    if(!st.decided || st.winsA===st.winsB) return;
+    winnerId = st.winsA>st.winsB ? m.teamA : m.teamB;
   }
   const nextRoundIdx = parseInt(roundIdx)+1;
   if(!rounds[nextRoundIdx]) return; // 결승이었음
