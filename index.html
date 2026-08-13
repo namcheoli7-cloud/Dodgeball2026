@@ -566,8 +566,12 @@ function paintMain(){
       <div></div>
     </div>`;
     if(!state.subtab){
+      if(state.role==='admin'){
+        const advHtml = renderAdvancementPanel(k,div);
+        if(advHtml) body += `<div style="margin-top:16px;">${advHtml}</div>`;
+      }
       body += `<div class="division-grid" style="margin-top:16px;">
-        <div class="division-card" onclick="state.subtab='setup';paintMain()"><div class="dtitle">🏫 우리학교 확인하기</div><div class="dmeta">우리 학교 조·일정 찾기, 진출 확정</div></div>
+        <div class="division-card" onclick="state.subtab='setup';paintMain()"><div class="dtitle">🏫 우리학교 확인하기</div><div class="dmeta">우리 학교 조·일정 찾기</div></div>
         <div class="division-card" onclick="state.subtab='matches';state.selectedStage=null;state.selectedGroup=null;paintMain()"><div class="dtitle">🏐 경기일정 및 결과</div><div class="dmeta">조별 경기 일정·점수</div></div>
         <div class="division-card" onclick="state.subtab='standings';state.selectedStage=null;state.selectedGroup=null;paintMain()"><div class="dtitle">🏆 순위표</div><div class="dmeta">조별 순위 확인</div></div>
       </div>`;
@@ -758,7 +762,7 @@ function renderSetup(k,div){
   });
 
   if(state.role==='admin'){
-    html += renderAdvancementPanel(k,div);
+    html += `<div class="small-note" style="margin-top:16px;">💡 본선 진출 확정은 종목 메뉴 화면 상단에서 할 수 있습니다.</div>`;
   }
   return html;
 }
