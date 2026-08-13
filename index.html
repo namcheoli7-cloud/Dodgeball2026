@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>구리남양주 피구 대회 운영판</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23ff7a1a'/%3E%3Cpath d='M 50 4 A 46 46 0 0 0 50 96' fill='%23181c24'/%3E%3Cpath d='M 8 32 Q 50 50 8 68' fill='none' stroke='%23181c24' stroke-width='4' opacity='0.7'/%3E%3Cpath d='M 92 32 Q 50 50 92 68' fill='none' stroke='%23181c24' stroke-width='4' opacity='0.7'/%3E%3Ccircle cx='50' cy='50' r='46' fill='none' stroke='%23181c24' stroke-width='3'/%3E%3C/svg%3E">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -1092,22 +1093,21 @@ function renderStandingsTableForGroup(k,div,poolId,pool){
   const rows = getDisplayStandings(div, poolId);
   if(rows.length===0) return `<div class="small-note">순위 정보가 없습니다.</div>`;
   const adv = stageDef && stageDef.advanceN ? Math.min(stageDef.advanceN, rows.length) : 0;
-  const isTied = (a,b)=> a.pts===b.pts && a.setScore===b.setScore;
-  const hasTie = rows.some((r,i)=> i>0 && isTied(r,rows[i-1]));
-  let html = `<div class="small-note">승점 → 총 내야 득점수 순으로 자동 정렬됩니다. ${state.role==='admin'?'그래도 동률이면 승자승·연장전/골든볼 결과를 보고 아래 화살표로 직접 순서를 조정하세요.':'동률인 경우 순서는 운영단이 직접 조정합니다.'}</div>
+  const hasUnresolvedTie = rows.some(r=> r.tied && !r.h2hResolved);
+  let html = `<div class="small-note">승점 → 총 내야 득점수 → 승자승(2팀 동률 시) 순으로 자동 정렬됩니다. ${state.role==='admin'?'그래도 동률이면(3팀 이상 동률 등) 연장전/골든볼 결과를 보고 아래 화살표로 직접 순서를 조정하세요.':'동률인 경우 순서는 운영단이 직접 조정합니다.'}</div>
   <div class="small-note" style="margin-top:4px;">승점이 동률인 경우: 총 내야 득점수 &gt; 승자승 &gt; 연장전(2분) &gt; 골든볼 순으로 결정</div>`;
-  if(hasTie && state.role==='admin'){
+  if(hasUnresolvedTie && state.role==='admin'){
     html += `<div class="small-note" style="color:var(--out-orange);margin-top:4px;">⚠ 동률 있음 · 순서 확인 필요</div>`;
   }
   html += `<table class="standings"><thead><tr>
     <th></th><th>학교</th><th>경기</th><th>승</th><th>무</th><th>패</th><th>승점</th><th>내야득점</th>${state.role==='admin'?'<th>순서조정</th>':''}
   </tr></thead><tbody>`;
   rows.forEach((r,i)=>{
-    const tied = (i>0 && isTied(r,rows[i-1])) || (i<rows.length-1 && isTied(r,rows[i+1]));
-    const canUp = i>0 && isTied(r,rows[i-1]);
-    const canDown = i<rows.length-1 && isTied(r,rows[i+1]);
+    const unresolvedTie = r.tied && !r.h2hResolved;
+    const canUp = i>0 && rows[i-1].pts===r.pts && rows[i-1].setScore===r.setScore && !r.h2hResolved && !rows[i-1].h2hResolved;
+    const canDown = i<rows.length-1 && rows[i+1].pts===r.pts && rows[i+1].setScore===r.setScore && !r.h2hResolved && !rows[i+1].h2hResolved;
     html += `<tr class="${adv && i<adv?'advance':''}">
-      <td class="rank">${i+1}</td><td>${r.name}${tied?' <span style="color:var(--out-orange);">•</span>':''}</td><td>${r.played}</td><td>${r.win}</td><td>${r.draw}</td><td>${r.lose}</td><td>${r.pts}</td><td>${r.setScore}</td>
+      <td class="rank">${i+1}</td><td>${r.name}${unresolvedTie?' <span style="color:var(--out-orange);">•</span>':''}${r.h2hResolved?' <span style="color:var(--chalk-dim);font-size:10px;" title="승자승으로 결정됨">(승자승)</span>':''}</td><td>${r.played}</td><td>${r.win}</td><td>${r.draw}</td><td>${r.lose}</td><td>${r.pts}</td><td>${r.setScore}</td>
       ${state.role==='admin'?`<td class="reorder-btns">
         <button class="btn btn-sm" ${canUp?'':'disabled'} onclick="manualReorder('${k}','${poolId}',${i},-1)">↑</button>
         <button class="btn btn-sm" ${canDown?'':'disabled'} onclick="manualReorder('${k}','${poolId}',${i},1)">↓</button>
@@ -1190,6 +1190,32 @@ function computeStandings(div, poolId){
   });
   let arr = Object.values(table);
   arr.sort((a,b)=> b.pts-a.pts || b.setScore-a.setScore);
+
+  // 동률 구간(승점·내야득점수까지 같은 팀들)을 찾아서, 정확히 2팀만 동률이면
+  // 맞대결(승자승) 결과로 자동 순서를 정합니다. 3팀 이상 동률이면 수동 조정 대상으로 남겨둡니다.
+  let i=0;
+  while(i<arr.length){
+    let j=i+1;
+    while(j<arr.length && arr[j].pts===arr[i].pts && arr[j].setScore===arr[i].setScore) j++;
+    const clusterSize = j-i;
+    if(clusterSize>=2){
+      for(let x=i;x<j;x++) arr[x].tied = true;
+      if(clusterSize===2){
+        const a = arr[i], b = arr[i+1];
+        const h2h = matches.map(([mid,m])=>m).find(m=> (m.teamA===a.id && m.teamB===b.id) || (m.teamA===b.id && m.teamB===a.id));
+        if(h2h){
+          const hst = matchStats(h2h);
+          if(hst.decided && hst.winner!=='draw'){
+            const aIsTeamA = h2h.teamA===a.id;
+            const aWon = (aIsTeamA && hst.winner==='A') || (!aIsTeamA && hst.winner==='B');
+            arr[i].h2hResolved = true; arr[i+1].h2hResolved = true;
+            if(!aWon){ arr[i]=b; arr[i+1]=a; }
+          }
+        }
+      }
+    }
+    i=j;
+  }
   return arr;
 }
 function getDisplayStandings(div, poolId){
