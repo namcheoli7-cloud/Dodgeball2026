@@ -384,7 +384,6 @@ const DATE_ORDER = ['8/19(수)','8/20(목)','8/21(금)','8/22(토)','8/23(일)']
 // ---------- 체크리스트 항목 ----------
 const CHECKLIST_ITEMS = [
   { key:'doc', label:'내부결재 공문 및 선수명단 제출' },
-  { key:'parking', label:'주차권 배부' },
   { key:'overtime', label:'초과근무 확인서 요청사항' }
 ];
 
@@ -626,7 +625,8 @@ window.openTeamModal = function(k, teamId){
       const isA = m.teamA===teamId;
       const oppId = isA ? m.teamB : m.teamA;
       const stageDef = (DIVISION_STAGES[k]||[]).find(s=>s.key===m.stage);
-      rows.push({ label: stageDef?stageDef.label:(m.stage||''), time:m.time, court:m.court, m, isA, oppName: oppId?teamName(div,oppId):'미정' });
+      const label = (stageDef && stageDef.key!=='league') ? stageDef.label : '';
+      rows.push({ label, time:m.time, court:m.court, m, isA, oppName: oppId?teamName(div,oppId):'미정' });
     }
   });
   rows.sort((a,b)=>{
@@ -654,7 +654,7 @@ window.openTeamModal = function(k, teamId){
       }
       bodyHtml += `<div class="match-card" style="margin-bottom:8px;">
         <div class="match-top">
-          <span class="match-group-label">${r.label}${r.time?' · '+r.time:''}${r.court?' · '+r.court:''}</span>
+          <span class="match-group-label">${[r.label,r.time,r.court].filter(Boolean).join(' · ')}</span>
           <span class="status-pill" style="border-color:${color};color:${color};">${statusLabel}</span>
         </div>
         <div class="teams-row" style="font-size:14px;"><span class="tname">${team.name}</span><span class="vs">VS</span><span class="tname">${r.oppName}</span></div>
@@ -668,6 +668,43 @@ window.openTeamModal = function(k, teamId){
   overlay.innerHTML = `<div class="card" style="max-width:420px;width:100%;max-height:80vh;overflow-y:auto;">
     <div class="flex-between" style="margin-bottom:12px;">
       <strong style="font-size:16px;">${team.name}${poolLabel?' · '+poolLabel:''}</strong>
+      <button class="btn btn-ghost btn-sm" onclick="this.closest('div[style*=fixed]').remove()">✕</button>
+    </div>
+    ${bodyHtml}
+  </div>`;
+  document.body.appendChild(overlay);
+};
+
+window.openVenueStandings = function(dateSel, venueSel){
+  const d = state.data;
+  let seenPools = [];
+  DIVISION_ORDER.forEach(k=>{
+    const div = d.divisions[k];
+    Object.entries(div.pools||{}).forEach(([poolId,pool])=>{
+      if(pool.venue !== venueSel) return;
+      const hasMatchHere = Object.values(div.matches||{}).some(m=>m.poolId===poolId && m.date===dateSel);
+      if(!hasMatchHere) return;
+      if((pool.teams||[]).length===0) return;
+      seenPools.push({k,poolId,pool});
+    });
+  });
+
+  let bodyHtml = '';
+  if(seenPools.length===0){
+    bodyHtml = `<div class="small-note">이 장소에서 진행되는 조가 없습니다.</div>`;
+  } else {
+    seenPools.forEach(({k,poolId,pool})=>{
+      bodyHtml += `<div class="section-title" style="margin-top:14px;">${DIVISION_PRESETS[k].short} · ${pool.name}</div>`;
+      bodyHtml += renderStandingsTableForGroup(k, d.divisions[k], poolId, pool);
+    });
+  }
+
+  const overlay = document.createElement('div');
+  overlay.style.position='fixed'; overlay.style.inset='0'; overlay.style.background='rgba(18,21,27,0.92)'; overlay.style.zIndex='65';
+  overlay.style.display='flex'; overlay.style.alignItems='center'; overlay.style.justifyContent='center'; overlay.style.padding='20px';
+  overlay.innerHTML = `<div class="card" style="max-width:460px;width:100%;max-height:82vh;overflow-y:auto;">
+    <div class="flex-between" style="margin-bottom:12px;">
+      <strong style="font-size:16px;">${venueSel} 순위표</strong>
       <button class="btn btn-ghost btn-sm" onclick="this.closest('div[style*=fixed]').remove()">✕</button>
     </div>
     ${bodyHtml}
@@ -1328,7 +1365,7 @@ function renderVenueView(d){
   let html = `<div class="flex-between" style="margin-bottom:14px;">
     <button class="btn btn-ghost btn-sm" onclick="state.selectedVenue=null;paintMain()">&larr; 장소 목록</button>
     <div style="font-weight:800;">${venueSel}</div>
-    <div></div>
+    <button class="btn btn-sm btn-primary" onclick='openVenueStandings("${dateSel}","${venueSel}")'>🏆 순위표</button>
   </div>
   <div class="small-note" style="margin-bottom:10px;">${dateSel} · 주황색으로 강조된 경기가 현재 진행중입니다.</div>`;
 
@@ -1339,9 +1376,10 @@ function renderVenueView(d){
       const st = matchStats(m);
       const isLive = st.played>0 && !st.decided;
       const stageDef = (DIVISION_STAGES[k]||[]).find(s=>s.key===m.stage);
+      const stageTag = (stageDef && stageDef.key!=='league') ? stageDef.label : '';
       const poolName = div.pools[m.poolId] ? div.pools[m.poolId].name : '';
       html += `<div style="${isLive?'border:3px solid var(--out-orange);border-radius:12px;':''}">
-        <div style="padding:2px 6px 0;font-size:11px;color:var(--chalk-dim);">${DIVISION_PRESETS[k].short} · ${stageDef?stageDef.label:''} ${poolName}</div>
+        <div style="padding:2px 6px 0;font-size:11px;color:var(--chalk-dim);">${[DIVISION_PRESETS[k].short, stageTag, poolName].filter(Boolean).join(' · ')}</div>
         ${renderMatchCard(k,mid,m,div,{showTimeCourtInputs:false, showScoreEntry:true})}
       </div>`;
     });
@@ -1365,13 +1403,16 @@ function renderMatchCard(k,mid,m,div,opts){
   const winsA = st.winsA, winsB = st.winsB;
   const winner = st.winner;
   const stageDef = (DIVISION_STAGES[k]||[]).find(s=>s.key===m.stage);
-  const stageLabel = stageDef ? stageDef.label : (m.stage||'');
+  const stageLabel = (stageDef && stageDef.key!=='league') ? stageDef.label : '';
   let status = 'scheduled';
   if(st.played>0 && !st.decided) status='live';
   if(st.decided && st.played>0) status='done';
+  const topLabelParts = [stageLabel];
+  if(!emphasizeTimeCourt && m.time) topLabelParts.push(m.time);
+  if(!emphasizeTimeCourt && m.court) topLabelParts.push(m.court);
   let html = `<div class="match-card">
     <div class="match-top">
-      <span class="match-group-label">${stageLabel}${(!emphasizeTimeCourt && m.time)?' · '+m.time:''}${(!emphasizeTimeCourt && m.court)?' · '+m.court:''}</span>
+      <span class="match-group-label">${topLabelParts.filter(Boolean).join(' · ')}</span>
       <span class="status-pill ${status}">${status==='done'?'종료':status==='live'?'진행중':'예정'}</span>
     </div>`;
   if(emphasizeTimeCourt && (m.time || m.court)){
