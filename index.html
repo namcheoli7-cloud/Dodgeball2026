@@ -381,6 +381,15 @@ const DIVISION_STAGE_DATES = {
 };
 const DATE_ORDER = ['8/19(수)','8/20(목)','8/21(금)','8/22(토)','8/23(일)'];
 
+function stageDateVenueText(k, stageDef, div){
+  const date = (DIVISION_STAGE_DATES[k]||{})[stageDef.key];
+  if(!date) return '';
+  const pools = Object.values((div&&div.pools)||{}).filter(p=>p.stage===stageDef.key);
+  const venues = [...new Set(pools.map(p=>p.venue).filter(Boolean))];
+  if(venues.length===1) return `${date} · ${venues[0]}`;
+  return date;
+}
+
 // ---------- 체크리스트 항목 ----------
 const CHECKLIST_ITEMS = [
   { key:'doc', label:'내부결재 공문 및 선수명단 제출' },
@@ -791,6 +800,8 @@ function renderSetup(k,div){
       const nextStage = stages[si+1];
       html += `<div class="small-note" style="margin-bottom:8px;">조 ${stageDef.advanceN}위까지 ${nextStage?nextStage.label:'다음 단계'}에 진출합니다.</div>`;
     }
+    const dvText = stageDateVenueText(k, stageDef, div);
+    if(dvText) html += `<div class="small-note" style="margin-bottom:8px;color:var(--out-orange);">📅 ${dvText}</div>`;
     const anyTeams = pools.some(([id,p])=>(p.teams||[]).length>0);
     if(!anyTeams){
       html += `<div class="small-note">아직 진출팀이 확정되지 않았습니다.</div>`;
@@ -1048,8 +1059,11 @@ function renderStagePoolPicker(sel){
   if(sel.needStagePick){
     let html = `<div class="small-note" style="margin-bottom:10px;">확인할 단계를 선택하세요.</div><div class="group-picker-grid">`;
     sel.availableStages.forEach(s=>{
+      const div = state.data.divisions[state.division];
+      const dvText = stageDateVenueText(state.division, s, div);
       html += `<div class="division-card" style="text-align:center;" onclick="state.selectedStage='${s.key}';state.selectedGroup=null;paintMain()">
         <div class="dtitle">${s.label}</div>
+        ${dvText?`<div class="dmeta" style="margin-top:2px;">${dvText}</div>`:''}
       </div>`;
     });
     html += `</div>`;
@@ -1096,11 +1110,15 @@ function renderMatchesTab(k,div){
     ? `state.selectedGroup=null;paintMain()`
     : (availableStages.length>1 ? `state.selectedStage=null;paintMain()` : `state.subtab=null;paintMain()`);
 
-  let html = `<div class="flex-between" style="margin-bottom:10px;">
+  let html = `<div class="flex-between" style="margin-bottom:4px;">
     <button class="btn btn-ghost btn-sm" onclick="${backAction}">&larr; 뒤로</button>
     <div style="font-weight:800;">${stageDef.label}${pools.length>1?' · '+pool.name:''}</div>
     <div></div>
   </div>`;
+  const dateForStage = (DIVISION_STAGE_DATES[k]||{})[stageDef.key];
+  if(dateForStage || pool.venue){
+    html += `<div class="small-note" style="text-align:center;margin-bottom:10px;">${[dateForStage,pool.venue].filter(Boolean).join(' · ')}</div>`;
+  }
 
   if(matches.length===0){
     html += `<div class="small-note">이 조에 생성된 경기가 없습니다.</div>`;
@@ -1123,11 +1141,15 @@ function renderStandingsTab(k,div){
     ? `state.selectedGroup=null;paintMain()`
     : (availableStages.length>1 ? `state.selectedStage=null;paintMain()` : `state.subtab=null;paintMain()`);
 
-  let html = `<div class="flex-between" style="margin-bottom:10px;">
+  let html = `<div class="flex-between" style="margin-bottom:4px;">
     <button class="btn btn-ghost btn-sm" onclick="${backAction}">&larr; 뒤로</button>
     <div style="font-weight:800;">${stageDef.label}${pools.length>1?' · '+pool.name:''}</div>
     <div></div>
   </div>`;
+  const dateForStage = (DIVISION_STAGE_DATES[k]||{})[stageDef.key];
+  if(dateForStage || pool.venue){
+    html += `<div class="small-note" style="text-align:center;margin-bottom:10px;">${[dateForStage,pool.venue].filter(Boolean).join(' · ')}</div>`;
+  }
   html += renderStandingsTableForGroup(k,div,poolId,pool);
   return html;
 }
@@ -1344,7 +1366,7 @@ function renderVenueView(d){
     });
   });
 
-  let planned = {}; // date -> venue -> { hasTeams, matchCount, sourceKey, sourceLabel }
+  let planned = {}; // date -> venue -> { hasTeams, matchCount, divisions:Set }
   DIVISION_ORDER.forEach(k=>{
     const div = d.divisions[k];
     (DIVISION_STAGES[k]||[]).forEach(stageDef=>{
@@ -1353,8 +1375,9 @@ function renderVenueView(d){
       Object.values(div.pools||{}).filter(p=>p.stage===stageDef.key).forEach(p=>{
         if(!p.venue) return;
         planned[date] = planned[date] || {};
-        const cur = planned[date][p.venue] || { hasTeams:false, matchCount:0 };
+        const cur = planned[date][p.venue] || { hasTeams:false, matchCount:0, divisions:new Set() };
         if((p.teams||[]).length>0) cur.hasTeams = true;
+        cur.divisions.add(DIVISION_PRESETS[k].short);
         planned[date][p.venue] = cur;
       });
     });
@@ -1363,8 +1386,9 @@ function renderVenueView(d){
     const date=x.m.date, venue=x.m.court;
     if(!date || !venue) return;
     planned[date] = planned[date] || {};
-    const cur = planned[date][venue] || { hasTeams:true, matchCount:0 };
+    const cur = planned[date][venue] || { hasTeams:true, matchCount:0, divisions:new Set() };
     cur.matchCount++;
+    cur.divisions.add(DIVISION_PRESETS[x.k].short);
     planned[date][venue] = cur;
   });
 
@@ -1378,8 +1402,11 @@ function renderVenueView(d){
       html += `<div class="section-title" style="margin-top:20px;">📅 ${date}</div><div class="group-picker-grid">`;
       Object.entries(planned[date]).forEach(([v,info])=>{
         const pending = !info.hasTeams;
+        const divTag = [...info.divisions].join(', ');
         html += `<div class="division-card" style="text-align:center;${pending?'opacity:0.6;':''}" onclick='state.selectedVenue={"date":"${date}","venue":"${v}"};paintMain()'>
-          <div class="dtitle">${v}</div><div class="dmeta">${pending?'대진 예정':info.matchCount+'경기'}</div>
+          <div class="dtitle">${v}</div>
+          <div class="dmeta" style="color:var(--out-orange);font-weight:600;">${divTag}</div>
+          <div class="dmeta">${pending?'대진 예정':info.matchCount+'경기'}</div>
         </div>`;
       });
       html += `</div>`;
@@ -1538,6 +1565,7 @@ window.forceWinner = function(k,mid,winner){
     .then(()=>{ db.ref(`tournaments/${state.code}/divisions/${k}/matches/${mid}/setsToPlay`).set(m.setsToPlay+1); });
 };
 window.resetMatch = function(k,mid){
+  if(!confirm('입력한 점수를 초기화할까요? 되돌릴 수 없습니다.')) return;
   db.ref(`tournaments/${state.code}/divisions/${k}/matches/${mid}/sets`).set(null);
 };
 
