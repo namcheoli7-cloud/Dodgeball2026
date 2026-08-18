@@ -530,16 +530,15 @@ function paintMain(){
       <div class="hero-ball">${ballIconSVG()}</div>
       <div style="color:var(--chalk-dim);font-size:13px;font-weight:700;letter-spacing:0.04em;margin-bottom:4px;">경기도교육청 구리남양주교육청</div>
       <h1 class="hero-title"><span class="accent">2026</span> 구리남양주 <span class="accent">피구</span>대회</h1>
-      <div class="hero-sub">학교스포츠클럽 축제 · 2학기 운영 · 실시간 결과</div>
+      <div class="hero-sub">학교스포츠클럽 축제 · 실시간 결과</div>
     </div>`;
     body += `<div class="section-title" style="margin-top:8px;">종별 선택</div><div class="division-grid">`;
     DIVISION_ORDER.forEach(k=>{
       const div = d.divisions[k];
       const teamCount = Object.keys(div.teams||{}).length;
-      const stageCount = DIVISION_STAGES[k].length;
       body += `<div class="division-card" onclick="selectDivision('${k}')">
         <div class="dtitle">${div.label}</div>
-        <div class="dmeta">참가 ${teamCount}팀 · ${stageCount}단계</div>
+        <div class="dmeta">참가 ${teamCount}팀</div>
       </div>`;
     });
     body += `</div>`;
@@ -723,6 +722,7 @@ window.submitAdminLogin = function(){
   if(pw !== state.data.meta.adminPw){ toast('비밀번호가 올바르지 않습니다'); return; }
   state.role='admin'; saveLocal();
   window._adminOverlay.remove();
+  state.mainView='venues'; state.division=null; state.subtab=null; state.selectedCourt=null;
   paintMain();
 };
 window.backToSpectator = function(){
