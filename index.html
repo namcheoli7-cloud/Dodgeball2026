@@ -181,11 +181,11 @@ const DIVISION_ORDER = ["boyEl","girlEl","girlMs","girlHs"];
 const DIVISION_PRESETS = {
   boyEl: {
     label: "남자초등부", short: "남초",
-    teams: ["남양주다산초","남양주송라초","다산하늘초","장승초","창현초","평내초"]
+    teams: ["다산초","송라초","하늘초","장승초","창현초","평내초"]
   },
   girlEl: {
     label: "여자초등부", short: "여초",
-    teams: ["남양주다산초","남양주미금초","남양주백봉초","남양주송라초","남양주양정초","다산하늘초","부양초","양오초","장내초","장승초","장자초","주곡초","진접초","창현초","해밀초","화봉초"]
+    teams: ["다산초","미금초","백봉초","송라초","양정초","하늘초","부양초","양오초","장내초","장승초","장자초","주곡초","진접초","창현초","해밀초","화봉초"]
   },
   girlMs: {
     label: "여자중등부", short: "여중",
@@ -221,13 +221,13 @@ const DIVISION_STAGES = {
 // ---------- 조(pool) 프리셋: 요강 시간표를 그대로 반영 (예선만 실제 팀 배정, 이후 단계는 진출 확정 시 채워짐) ----------
 const PRESET_POOLS = {
   boyEl: { league: [
-    { id:'p_all', name:'전체', venue:'다산초', teams:['남양주다산초','남양주송라초','다산하늘초','장승초','창현초','평내초'] }
+    { id:'p_all', name:'전체', venue:'다산초', teams:['다산초','송라초','하늘초','장승초','창현초','평내초'] }
   ]},
   girlEl: {
     prelim: [
       { id:'p_해밀', name:'해밀초조', venue:'해밀초', teams:['해밀초','양오초','장승초','진접초','화봉초','주곡초'] },
-      { id:'p_백봉', name:'백봉초조', venue:'백봉초', teams:['장내초','남양주양정초','남양주송라초','창현초','남양주백봉초'] },
-      { id:'p_부양', name:'부양초조', venue:'부양초', teams:['다산하늘초','장자초','남양주다산초','남양주미금초','부양초'] }
+      { id:'p_백봉', name:'백봉초조', venue:'백봉초', teams:['장내초','양정초','송라초','창현초','백봉초'] },
+      { id:'p_부양', name:'부양초조', venue:'부양초', teams:['하늘초','장자초','다산초','미금초','부양초'] }
     ],
     final: [ { id:'p_final', name:'결승리그', venue:'토평초', teams:[] } ]
   },
@@ -261,20 +261,20 @@ const PRESET_POOLS = {
 // ---------- 예선(1단계) 실제 대진: [학교A, 학교B, 시간, 장소, 조id] ----------
 const PRESET_MATCHES = {
   boyEl: { league: [
-    ['남양주다산초','다산하늘초','14:30','다산초','p_all'],
+    ['다산초','하늘초','14:30','다산초','p_all'],
     ['장승초','평내초','14:40','다산초','p_all'],
-    ['남양주송라초','창현초','14:50','다산초','p_all'],
-    ['남양주다산초','평내초','15:10','다산초','p_all'],
-    ['다산하늘초','창현초','15:20','다산초','p_all'],
-    ['장승초','남양주송라초','15:30','다산초','p_all'],
-    ['남양주다산초','창현초','15:50','다산초','p_all'],
-    ['평내초','남양주송라초','16:00','다산초','p_all'],
-    ['다산하늘초','장승초','16:10','다산초','p_all'],
-    ['남양주다산초','남양주송라초','16:30','다산초','p_all'],
+    ['송라초','창현초','14:50','다산초','p_all'],
+    ['다산초','평내초','15:10','다산초','p_all'],
+    ['하늘초','창현초','15:20','다산초','p_all'],
+    ['장승초','송라초','15:30','다산초','p_all'],
+    ['다산초','창현초','15:50','다산초','p_all'],
+    ['평내초','송라초','16:00','다산초','p_all'],
+    ['하늘초','장승초','16:10','다산초','p_all'],
+    ['다산초','송라초','16:30','다산초','p_all'],
     ['창현초','장승초','16:40','다산초','p_all'],
-    ['평내초','다산하늘초','16:50','다산초','p_all'],
-    ['남양주다산초','장승초','17:10','다산초','p_all'],
-    ['남양주송라초','다산하늘초','17:20','다산초','p_all'],
+    ['평내초','하늘초','16:50','다산초','p_all'],
+    ['다산초','장승초','17:10','다산초','p_all'],
+    ['송라초','하늘초','17:20','다산초','p_all'],
     ['창현초','평내초','17:30','다산초','p_all']
   ]},
   girlEl: { prelim: [
@@ -293,26 +293,26 @@ const PRESET_MATCHES = {
     ['해밀초','장승초','17:30','해밀초','p_해밀'],
     ['화봉초','양오초','17:40','해밀초','p_해밀'],
     ['주곡초','진접초','17:50','해밀초','p_해밀'],
-    ['장내초','남양주양정초','15:00','백봉초','p_백봉'],
-    ['남양주송라초','창현초','15:10','백봉초','p_백봉'],
-    ['남양주백봉초','남양주양정초','15:30','백봉초','p_백봉'],
-    ['장내초','남양주송라초','15:40','백봉초','p_백봉'],
-    ['남양주백봉초','창현초','15:50','백봉초','p_백봉'],
-    ['남양주양정초','남양주송라초','16:10','백봉초','p_백봉'],
-    ['남양주백봉초','남양주송라초','16:20','백봉초','p_백봉'],
+    ['장내초','양정초','15:00','백봉초','p_백봉'],
+    ['송라초','창현초','15:10','백봉초','p_백봉'],
+    ['백봉초','양정초','15:30','백봉초','p_백봉'],
+    ['장내초','송라초','15:40','백봉초','p_백봉'],
+    ['백봉초','창현초','15:50','백봉초','p_백봉'],
+    ['양정초','송라초','16:10','백봉초','p_백봉'],
+    ['백봉초','송라초','16:20','백봉초','p_백봉'],
     ['창현초','장내초','16:30','백봉초','p_백봉'],
-    ['남양주백봉초','장내초','16:40','백봉초','p_백봉'],
-    ['창현초','남양주양정초','16:50','백봉초','p_백봉'],
-    ['다산하늘초','장자초','15:00','부양초','p_부양'],
-    ['남양주다산초','남양주미금초','15:10','부양초','p_부양'],
+    ['백봉초','장내초','16:40','백봉초','p_백봉'],
+    ['창현초','양정초','16:50','백봉초','p_백봉'],
+    ['하늘초','장자초','15:00','부양초','p_부양'],
+    ['다산초','미금초','15:10','부양초','p_부양'],
     ['부양초','장자초','15:30','부양초','p_부양'],
-    ['다산하늘초','남양주다산초','15:40','부양초','p_부양'],
-    ['부양초','남양주미금초','15:50','부양초','p_부양'],
-    ['장자초','남양주다산초','16:10','부양초','p_부양'],
-    ['부양초','남양주다산초','16:20','부양초','p_부양'],
-    ['남양주미금초','다산하늘초','16:30','부양초','p_부양'],
-    ['부양초','다산하늘초','16:40','부양초','p_부양'],
-    ['남양주미금초','장자초','16:50','부양초','p_부양']
+    ['하늘초','다산초','15:40','부양초','p_부양'],
+    ['부양초','미금초','15:50','부양초','p_부양'],
+    ['장자초','다산초','16:10','부양초','p_부양'],
+    ['부양초','다산초','16:20','부양초','p_부양'],
+    ['미금초','하늘초','16:30','부양초','p_부양'],
+    ['부양초','하늘초','16:40','부양초','p_부양'],
+    ['미금초','장자초','16:50','부양초','p_부양']
   ]},
   girlMs: { prelim: [
     ['덕소중','광동중','9:15','덕소중','p_g1'],
@@ -577,9 +577,9 @@ function paintMain(){
         if(advHtml) body += `<div style="margin-top:16px;">${advHtml}</div>`;
       }
       body += `<div class="division-grid" style="margin-top:16px;">
+        <div class="division-card" onclick="state.subtab='standings';state.selectedStage=null;state.selectedGroup=null;paintMain()"><div class="dtitle">🏆 순위표</div><div class="dmeta">조별 순위 확인</div></div>
         <div class="division-card" onclick="state.subtab='setup';paintMain()"><div class="dtitle">🏫 우리학교 확인하기</div><div class="dmeta">우리 학교 조·일정 찾기</div></div>
         <div class="division-card" onclick="state.subtab='matches';state.selectedStage=null;state.selectedGroup=null;paintMain()"><div class="dtitle">🏐 경기일정 및 결과</div><div class="dmeta">조별 경기 일정·점수</div></div>
-        <div class="division-card" onclick="state.subtab='standings';state.selectedStage=null;state.selectedGroup=null;paintMain()"><div class="dtitle">🏆 순위표</div><div class="dmeta">조별 순위 확인</div></div>
       </div>`;
     } else {
       const subtabLabels = {setup:'우리학교 확인하기', matches:'경기일정 및 결과', standings:'순위표'};
@@ -650,7 +650,7 @@ window.openTeamModal = function(k, teamId){
   if(rows.length===0){
     bodyHtml = `<div class="small-note">아직 배정된 경기가 없습니다.</div>`;
   } else {
-    rows.forEach(r=>{
+    rows.forEach((r,idx)=>{
       const st = matchStats(r.m);
       const winsSelf = r.isA ? st.winsA : st.winsB;
       const winsOpp = r.isA ? st.winsB : st.winsA;
@@ -663,7 +663,7 @@ window.openTeamModal = function(k, teamId){
       }
       bodyHtml += `<div class="match-card" style="margin-bottom:8px;">
         <div class="match-top">
-          <span class="match-group-label">${[r.label,r.time,r.court].filter(Boolean).join(' · ')}</span>
+          <span class="match-group-label">${[r.label,(idx+1)+'경기',r.court].filter(Boolean).join(' · ')}</span>
           <span class="status-pill" style="border-color:${color};color:${color};">${statusLabel}</span>
         </div>
         <div class="teams-row" style="font-size:14px;"><span class="tname">${team.name}</span><span class="vs">VS</span><span class="tname">${r.oppName}</span></div>
@@ -1123,7 +1123,7 @@ function renderMatchesTab(k,div){
   if(matches.length===0){
     html += `<div class="small-note">이 조에 생성된 경기가 없습니다.</div>`;
   } else {
-    matches.forEach(([mid,m])=>{ html += renderMatchCard(k,mid,m,div,{showTimeCourtInputs:true, showScoreEntry:false, emphasizeTimeCourt:true}); });
+    matches.forEach(([mid,m],idx)=>{ html += renderMatchCard(k,mid,m,div,{showTimeCourtInputs:true, showScoreEntry:false, emphasizeTimeCourt:true, orderLabel:(idx+1)+'경기'}); });
   }
   return html;
 }
@@ -1201,9 +1201,12 @@ window.manualReorder = function(k,poolId,idx,dir){
 // ============================================================
 function parseTimeToMinutes(t){
   if(!t) return null;
-  const m = String(t).match(/(\d{1,2}):(\d{2})/);
-  if(!m) return null;
-  return parseInt(m[1])*60 + parseInt(m[2]);
+  const s = String(t).trim();
+  const hm = s.match(/^(\d{1,2}):(\d{2})/);
+  if(hm) return parseInt(hm[1])*60 + parseInt(hm[2]);
+  const num = s.match(/^(\d{1,3})$/);
+  if(num) return parseInt(num[1]);
+  return null;
 }
 function setResult(setObj){
   if(!setObj || setObj.a===undefined || setObj.a===null || setObj.b===undefined || setObj.b===null) return null;
@@ -1437,7 +1440,7 @@ function renderVenueView(d){
       ? `<div class="empty-state"><div class="big">🏐</div>이 날짜 경기는 이전 단계(예선) 결과에 따라 진출팀이 정해진 뒤에 대진이 만들어져요.<br>예선이 끝나면 여기에 자동으로 표시됩니다.</div>`
       : `<div class="empty-state"><div class="big">🏐</div>이 장소에 경기가 없습니다.</div>`;
   } else {
-    matches.forEach(({k,mid,m,div})=>{
+    matches.forEach(({k,mid,m,div},idx)=>{
       const st = matchStats(m);
       const isLive = st.played>0 && !st.decided;
       const stageDef = (DIVISION_STAGES[k]||[]).find(s=>s.key===m.stage);
@@ -1445,7 +1448,7 @@ function renderVenueView(d){
       const poolName = div.pools[m.poolId] ? div.pools[m.poolId].name : '';
       html += `<div style="${isLive?'border:3px solid var(--out-orange);border-radius:12px;':''}">
         <div style="padding:2px 6px 0;font-size:11px;color:var(--chalk-dim);">${[DIVISION_PRESETS[k].short, stageTag, poolName].filter(Boolean).join(' · ')}</div>
-        ${renderMatchCard(k,mid,m,div,{showTimeCourtInputs:false, showScoreEntry:true})}
+        ${renderMatchCard(k,mid,m,div,{showTimeCourtInputs:false, showScoreEntry:true, orderLabel:(idx+1)+'경기'})}
       </div>`;
     });
   }
@@ -1460,6 +1463,7 @@ function renderMatchCard(k,mid,m,div,opts){
   const showTimeCourtInputs = opts.showTimeCourtInputs!==undefined ? opts.showTimeCourtInputs : true;
   const showScoreEntry = opts.showScoreEntry!==undefined ? opts.showScoreEntry : true;
   const emphasizeTimeCourt = opts.emphasizeTimeCourt || false;
+  const orderLabel = opts.orderLabel || '';
   const isAdmin = state.role==='admin';
   const nameA = teamName(div,m.teamA), nameB = teamName(div,m.teamB);
   const sets = m.sets||{};
@@ -1473,19 +1477,21 @@ function renderMatchCard(k,mid,m,div,opts){
   if(st.played>0 && !st.decided) status='live';
   if(st.decided && st.played>0) status='done';
   const topLabelParts = [stageLabel];
-  if(!emphasizeTimeCourt && m.time) topLabelParts.push(m.time);
-  if(!emphasizeTimeCourt && m.court) topLabelParts.push(m.court);
+  if(!emphasizeTimeCourt){
+    if(orderLabel) topLabelParts.push(orderLabel);
+    if(m.court) topLabelParts.push(m.court);
+  }
   let html = `<div class="match-card">
     <div class="match-top">
       <span class="match-group-label">${topLabelParts.filter(Boolean).join(' · ')}</span>
       <span class="status-pill ${status}">${status==='done'?'종료':status==='live'?'진행중':'예정'}</span>
     </div>`;
-  if(emphasizeTimeCourt && (m.time || m.court)){
-    html += `<div style="text-align:center;font-weight:800;font-size:19px;color:var(--out-orange);margin-bottom:10px;">${m.time?m.time:''}${m.time&&m.court?' · ':''}${m.court?m.court:''}</div>`;
+  if(emphasizeTimeCourt && (orderLabel || m.court)){
+    html += `<div style="text-align:center;font-weight:800;font-size:19px;color:var(--out-orange);margin-bottom:10px;">${orderLabel?orderLabel:''}${orderLabel&&m.court?' · ':''}${m.court?m.court:''}</div>`;
   }
   if(isAdmin && showTimeCourtInputs){
     html += `<div style="display:flex;gap:6px;margin-bottom:8px;">
-      <input type="text" value="${m.time||''}" placeholder="경기시간 (예: 10:30)" onchange="setMatchTime('${k}','${mid}',this.value)" style="flex:1;padding:6px 8px;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);border-radius:6px;font-size:12px;">
+      <input type="text" value="${m.time||''}" placeholder="경기 순서 (예: 1, 2, 3)" onchange="setMatchTime('${k}','${mid}',this.value)" style="flex:1;padding:6px 8px;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);border-radius:6px;font-size:12px;">
       <input type="text" value="${m.court||''}" placeholder="경기장소 (예: 다산초)" onchange="setMatchCourt('${k}','${mid}',this.value)" style="flex:1;padding:6px 8px;background:var(--court-bg);color:var(--chalk);border:1px solid var(--line);border-radius:6px;font-size:12px;">
     </div>`;
   }
