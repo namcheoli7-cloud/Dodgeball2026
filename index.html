@@ -205,7 +205,7 @@ const DIVISION_STAGES = {
   ],
   girlEl: [
     { key:'prelim', label:'예선', sets:2, drawAllowed:true, advanceN:2 },
-    { key:'final', label:'본선 (결승리그)', sets:3, drawAllowed:false }
+    { key:'final', label:'본선 (결승리그)', sets:2, drawAllowed:true }
   ],
   girlMs: [
     { key:'prelim', label:'예선', sets:2, drawAllowed:true, advanceN:1 },
@@ -948,7 +948,7 @@ window.advanceGirlElFinal = function(){
   template.forEach((row,idx)=>{
     const mid='m_final_'+idx;
     updates[`divisions/${k}/matches/${mid}`] = {
-      poolId:'p_final', teamA:slotMap[row[0]], teamB:slotMap[row[1]], sets:{}, setsToPlay:3, drawAllowed:false,
+      poolId:'p_final', teamA:slotMap[row[0]], teamB:slotMap[row[1]], sets:{}, setsToPlay:2, drawAllowed:true,
       stage:'final', time:row[2], court:'토평초', date:'8/21(금)', status:'scheduled', createdAt: idx
     };
   });
