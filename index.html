@@ -744,7 +744,10 @@ window.resetAllResults = function(){
   const updates = {};
   DIVISION_ORDER.forEach(k=>{
     const div = state.data.divisions[k];
-    Object.keys(div.matches||{}).forEach(mid=>{ updates[`divisions/${k}/matches/${mid}/sets`]=null; });
+    Object.keys(div.matches||{}).forEach(mid=>{
+      updates[`divisions/${k}/matches/${mid}/sets`]=null;
+      updates[`divisions/${k}/matches/${mid}/forcedWinner`]=null;
+    });
   });
   db.ref('tournaments/'+state.code).update(updates).then(()=>toast('전체 경기결과가 초기화되었습니다'));
 };
@@ -1227,6 +1230,10 @@ function matchStats(m){
     if(r==='A') winsA++;
     else if(r==='B') winsB++;
   }
+  // 연장전/골든볼로 승자를 직접 지정한 경우: 세트 수·과반수 계산과 무관하게 그 결과를 그대로 확정합니다.
+  if(m.forcedWinner==='A' || m.forcedWinner==='B'){
+    return {winsA,winsB,played,setCount,decided:true,winner:m.forcedWinner,sumA,sumB};
+  }
   const decided = !m.drawAllowed ? (winsA>Math.floor(setCount/2) || winsB>Math.floor(setCount/2)) : (played===setCount);
   let winner = null;
   if(decided && played>0){
@@ -1532,7 +1539,10 @@ function renderMatchCard(k,mid,m,div,opts){
       if(winner==='draw' && status==='done'){
         html += `<div class="small-note" style="text-align:center;">세트 무승부 — 승점 1:1 처리됩니다.</div>`;
       }
-      if(isAdmin && !m.drawAllowed && st.played===setCount && winsA===winsB){
+      if(m.forcedWinner){
+        html += `<div class="small-note" style="text-align:center;color:var(--out-orange);">⚡ 연장전/골든볼로 승자가 결정된 경기입니다.</div>`;
+      }
+      if(isAdmin && !m.drawAllowed && st.played===setCount && winsA===winsB && !m.forcedWinner){
         html += `<div class="match-actions">
           <span class="small-note">동률! 연장전/골든볼 결과로 승자를 지정하세요:</span>
         </div>
@@ -1563,15 +1573,12 @@ window.setSetScore = function(k, mid, setIdx, side, value){
   db.ref(`tournaments/${state.code}/divisions/${k}/matches/${mid}/sets/${setIdx}/${side}`).set(num);
 };
 window.forceWinner = function(k,mid,winner){
-  const setObj = winner==='A' ? {a:1,b:0} : {a:0,b:1};
-  const div = state.data.divisions[k];
-  const m = div.matches[mid];
-  db.ref(`tournaments/${state.code}/divisions/${k}/matches/${mid}/sets/${m.setsToPlay}`).set(setObj)
-    .then(()=>{ db.ref(`tournaments/${state.code}/divisions/${k}/matches/${mid}/setsToPlay`).set(m.setsToPlay+1); });
+  db.ref(`tournaments/${state.code}/divisions/${k}/matches/${mid}/forcedWinner`).set(winner);
 };
 window.resetMatch = function(k,mid){
   if(!confirm('입력한 점수를 초기화할까요? 되돌릴 수 없습니다.')) return;
   db.ref(`tournaments/${state.code}/divisions/${k}/matches/${mid}/sets`).set(null);
+  db.ref(`tournaments/${state.code}/divisions/${k}/matches/${mid}/forcedWinner`).set(null);
 };
 
 // ============================================================
