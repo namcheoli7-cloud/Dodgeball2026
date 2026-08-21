@@ -209,12 +209,12 @@ const DIVISION_STAGES = {
   ],
   girlMs: [
     { key:'prelim', label:'예선', sets:2, drawAllowed:true, advanceN:1 },
-    { key:'semis', label:'본선1 (조별리그)', sets:3, drawAllowed:false, advanceN:1 },
-    { key:'final', label:'본선2 (결승)', sets:3, drawAllowed:false }
+    { key:'semis', label:'본선1 (조별리그)', sets:2, drawAllowed:true, advanceN:1 },
+    { key:'final', label:'본선2 (결승)', sets:2, drawAllowed:true }
   ],
   girlHs: [
     { key:'prelim', label:'예선', sets:2, drawAllowed:true, advanceN:1 },
-    { key:'final', label:'본선 (전체리그)', sets:3, drawAllowed:false }
+    { key:'final', label:'본선 (전체리그)', sets:2, drawAllowed:true }
   ]
 };
 
@@ -981,11 +981,11 @@ window.confirmMsSemis = function(){
   let idx=0;
   templateA.forEach(([s1,s2,time])=>{
     const mid='m_semis_'+(idx++);
-    updates[`divisions/girlMs/matches/${mid}`] = { poolId:'p_a', teamA:slotMap[s1], teamB:slotMap[s2], sets:{}, setsToPlay:3, drawAllowed:false, stage:'semis', time, court:'덕소고', date:'8/23(일)', status:'scheduled', createdAt: idx };
+    updates[`divisions/girlMs/matches/${mid}`] = { poolId:'p_a', teamA:slotMap[s1], teamB:slotMap[s2], sets:{}, setsToPlay:2, drawAllowed:true, stage:'semis', time, court:'덕소고', date:'8/23(일)', status:'scheduled', createdAt: idx };
   });
   templateB.forEach(([s1,s2,time])=>{
     const mid='m_semis_'+(idx++);
-    updates[`divisions/girlMs/matches/${mid}`] = { poolId:'p_b', teamA:slotMap[s1], teamB:slotMap[s2], sets:{}, setsToPlay:3, drawAllowed:false, stage:'semis', time, court:'덕소고', date:'8/23(일)', status:'scheduled', createdAt: idx };
+    updates[`divisions/girlMs/matches/${mid}`] = { poolId:'p_b', teamA:slotMap[s1], teamB:slotMap[s2], sets:{}, setsToPlay:2, drawAllowed:true, stage:'semis', time, court:'덕소고', date:'8/23(일)', status:'scheduled', createdAt: idx };
   });
   db.ref('tournaments/'+state.code).update(updates).then(()=>toast('본선1(A/B조) 대진이 생성되었습니다'));
 };
@@ -997,7 +997,7 @@ window.advanceMsFinal = function(){
   const updates = {};
   updates['divisions/girlMs/pools/p_grand/teams'] = [topA, topB];
   updates['divisions/girlMs/matches/m_grand_final'] = {
-    poolId:'p_grand', teamA:topA, teamB:topB, sets:{}, setsToPlay:3, drawAllowed:false,
+    poolId:'p_grand', teamA:topA, teamB:topB, sets:{}, setsToPlay:2, drawAllowed:true,
     stage:'final', time:'13:00', court:'덕소고', date:'8/23(일)', status:'scheduled', createdAt:0
   };
   db.ref('tournaments/'+state.code).update(updates).then(()=>toast('결승 대진이 생성되었습니다'));
@@ -1024,7 +1024,7 @@ window.confirmHsFinal = function(){
   template.forEach((row,idx)=>{
     const mid='m_final_'+idx;
     updates[`divisions/girlHs/matches/${mid}`] = {
-      poolId:'p_final', teamA:slotMap[row[0]], teamB:slotMap[row[1]], sets:{}, setsToPlay:3, drawAllowed:false,
+      poolId:'p_final', teamA:slotMap[row[0]], teamB:slotMap[row[1]], sets:{}, setsToPlay:2, drawAllowed:true,
       stage:'final', time:row[2], court:'덕소고', date:'8/23(일)', status:'scheduled', createdAt: idx
     };
   });
