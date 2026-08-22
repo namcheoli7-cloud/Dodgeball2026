@@ -213,8 +213,9 @@ const DIVISION_STAGES = {
     { key:'final', label:'본선2 (결승)', sets:2, drawAllowed:true }
   ],
   girlHs: [
-    { key:'prelim', label:'예선', sets:2, drawAllowed:true, advanceN:1 },
-    { key:'final', label:'본선 (전체리그)', sets:2, drawAllowed:true }
+    { key:'prelim', label:'예선', sets:2, drawAllowed:true, advanceN:2 },
+    { key:'semis', label:'본선1 (조별리그)', sets:2, drawAllowed:true, advanceN:1 },
+    { key:'final', label:'본선2 (결승)', sets:2, drawAllowed:true }
   ]
 };
 
@@ -254,7 +255,11 @@ const PRESET_POOLS = {
       { id:'p_b', name:'B조', venue:'퇴계원중', teams:['진건고','남양주다산고','진접고','가운고'] },
       { id:'p_c', name:'C조', venue:'덕소중', teams:['광동고','덕소고'] }
     ],
-    final: [ { id:'p_final', name:'본선리그', venue:'덕소고', teams:[] } ]
+    semis: [
+      { id:'p_sa', name:'A조', venue:'덕소고', teams:[] },
+      { id:'p_sb', name:'B조', venue:'덕소고', teams:[] }
+    ],
+    final: [ { id:'p_grand', name:'결승', venue:'덕소고', teams:[] } ]
   }
 };
 
@@ -795,8 +800,6 @@ function renderSetup(k,div){
     const isLastStage = si===stages.length-1;
     if(isLastStage){
       html += `<div class="small-note" style="margin-bottom:8px;">이 단계 결과로 최종 순위가 정해집니다.</div>`;
-    } else if(k==='girlHs' && stageDef.key==='prelim'){
-      html += `<div class="small-note" style="margin-bottom:8px;">조 1위는 자동으로 본선에 진출하고, 조 2위 중 성적이 가장 좋은 1팀이 와일드카드로 추가 진출합니다.</div>`;
     } else if(stageDef.advanceN){
       const nextStage = stages[si+1];
       html += `<div class="small-note" style="margin-bottom:8px;">조 ${stageDef.advanceN}위까지 ${nextStage?nextStage.label:'다음 단계'}에 진출합니다.</div>`;
@@ -896,32 +899,48 @@ function renderAdvancementPanel(k,div){
 
   if(k==='girlHs'){
     const prelimComplete = isStageComplete(div,'prelim');
-    const finalPool = div.pools['p_final'];
-    const finalReady = finalPool && (finalPool.teams||[]).length>0;
-    if(finalReady) return `<div class="small-note" style="margin-top:16px;">✅ 본선 대진이 생성되었습니다.</div>`;
-    if(!prelimComplete) return `<div class="small-note" style="margin-top:16px;">예선이 모두 끝나면 본선 진출팀(조1위 3팀 + 와일드카드 1팀)을 확정할 수 있습니다.</div>`;
+    const semisA = div.pools['p_sa'], semisB = div.pools['p_sb'];
+    const semisReady = semisA && (semisA.teams||[]).length>0;
+    const semisComplete = semisReady && isPoolComplete(div,'p_sa') && isPoolComplete(div,'p_sb');
+    const grandPool = div.pools['p_grand'];
+    const grandReady = grandPool && (grandPool.teams||[]).length>0;
+
+    if(grandReady) return `<div class="small-note" style="margin-top:16px;">✅ 본선2(결승) 대진이 생성되었습니다.</div>`;
+
+    if(semisReady){
+      if(!semisComplete){
+        return `<div class="small-note" style="margin-top:16px;">본선1(A/B조) 경기가 모두 끝나면 결승 대진을 만들 수 있습니다.</div>`;
+      }
+      const topA = getPoolTop(div,'p_sa',1)[0], topB = getPoolTop(div,'p_sb',1)[0];
+      return `<div class="card" style="margin-top:16px;border-color:var(--out-orange);">
+        <div style="font-weight:800;margin-bottom:6px;">🏆 본선2(결승) 대진 확정</div>
+        <div class="small-note" style="margin-bottom:8px;">A조 1위 ${div.teams[topA]?div.teams[topA].name:'?'} vs B조 1위 ${div.teams[topB]?div.teams[topB].name:'?'}</div>
+        <button class="btn btn-primary" onclick="advanceHsFinal()">결승 대진 생성</button>
+      </div>`;
+    }
+
+    if(!prelimComplete) return `<div class="small-note" style="margin-top:16px;">예선이 모두 끝나면 본선 진출팀(3개조 1·2위 전원)을 확정할 수 있습니다.</div>`;
 
     const prelimPools = Object.entries(div.pools).filter(([id,p])=>p.stage==='prelim');
-    const top1s = prelimPools.map(([id,p])=>({poolName:p.name, id:getPoolTop(div,id,1)[0]})).filter(w=>w.id);
-    const candidates = [];
+    const advancers = [];
     prelimPools.forEach(([id,p])=>{
-      const rows = getDisplayStandings(div,id);
-      rows.slice(1).forEach(r=> candidates.push({id:r.id, name:r.name, poolName:p.name, pts:r.pts, setScore:r.setScore}) );
+      const top2 = getPoolTop(div,id,2);
+      top2.forEach((tid,i)=>{ advancers.push({id:tid, name:div.teams[tid]?div.teams[tid].name:'?', poolName:p.name, rank:i+1}); });
     });
-    candidates.sort((a,b)=> b.pts-a.pts || b.setScore-a.setScore);
-    const curW = finalPool ? finalPool.wildcardPick : null;
+    const pa = div.pools.p_sa || {teams:[]}, pb = div.pools.p_sb || {teams:[]};
 
     let html = `<div class="card" style="margin-top:16px;border-color:var(--out-orange);">
-      <div style="font-weight:800;margin-bottom:6px;">⚡ 본선(전체리그) 진출팀 확정</div>
-      <div class="small-note" style="margin-bottom:8px;">자동 진출: ${top1s.map(w=>(div.teams[w.id]?div.teams[w.id].name:'?')+'('+w.poolName+' 1위)').join(', ')}</div>
-      <div class="small-note" style="margin-bottom:6px;">와일드카드 1팀을 선택하세요 (승점 높은 순):</div>
+      <div style="font-weight:800;margin-bottom:6px;">⚡ 본선1(A/B조) 진출팀 배정</div>
+      <div class="small-note" style="margin-bottom:8px;">와일드카드 없이 3개 권역 1위·2위 전원(${advancers.length}팀)이 진출합니다. 학교를 눌러서 A조/B조에 3팀씩 나눠 배정하세요 (클릭할 때마다 미배정→A조→B조→미배정 순으로 바뀝니다).</div>
       <div class="group-teams">`;
-    candidates.forEach(c=>{
-      const sel = curW===c.id;
-      html += `<div class="group-team-tag" style="cursor:pointer;${sel?'border-color:var(--out-orange);color:var(--out-orange);':''}" onclick="toggleHsWildcard('${c.id}')">${c.name} <span style="color:var(--chalk-dim);">(${c.poolName}·승점${c.pts}·내야${c.setScore})</span></div>`;
+    advancers.forEach(a=>{
+      const inA = (pa.teams||[]).includes(a.id), inB = (pb.teams||[]).includes(a.id);
+      const tag = inA ? 'A조' : (inB ? 'B조' : '');
+      html += `<div class="group-team-tag" style="cursor:pointer;${inA||inB?'border-color:var(--out-orange);color:var(--out-orange);':''}" onclick="toggleHsAssignment('${a.id}')">${a.name} <span style="color:var(--chalk-dim);">(${a.poolName} ${a.rank}위)${tag?' · '+tag:''}</span></div>`;
     });
     html += `</div>
-      <button class="btn btn-primary" style="margin-top:10px;" onclick="confirmHsFinal()">본선 대진 생성</button>
+      <div class="small-note" style="margin-top:8px;">A조 ${(pa.teams||[]).length}/3 · B조 ${(pb.teams||[]).length}/3</div>
+      <button class="btn btn-primary" style="margin-top:10px;" onclick="confirmHsSemis()">본선1 대진 생성</button>
     </div>`;
     return html;
   }
@@ -1003,32 +1022,54 @@ window.advanceMsFinal = function(){
   db.ref('tournaments/'+state.code).update(updates).then(()=>toast('결승 대진이 생성되었습니다'));
 };
 
-window.toggleHsWildcard = function(teamId){
+window.toggleHsAssignment = function(teamId){
   const div = state.data.divisions.girlHs;
-  const cur = (div.pools.p_final && div.pools.p_final.wildcardPick) || null;
-  const val = (cur===teamId) ? null : teamId;
-  db.ref('tournaments/'+state.code+'/divisions/girlHs/pools/p_final/wildcardPick').set(val);
+  const pa = div.pools.p_sa || {teams:[]}, pb = div.pools.p_sb || {teams:[]};
+  const inA = (pa.teams||[]).includes(teamId);
+  const inB = (pb.teams||[]).includes(teamId);
+  let newA = (pa.teams||[]).filter(id=>id!==teamId);
+  let newB = (pb.teams||[]).filter(id=>id!==teamId);
+  if(!inA && !inB){
+    if(newA.length>=3){ toast('A조는 이미 3팀입니다'); return; }
+    newA.push(teamId);
+  } else if(inA){
+    if(newB.length>=3){ toast('B조는 이미 3팀입니다'); return; }
+    newB.push(teamId);
+  }
+  db.ref('tournaments/'+state.code+'/divisions/girlHs/pools/p_sa/teams').set(newA);
+  db.ref('tournaments/'+state.code+'/divisions/girlHs/pools/p_sb/teams').set(newB);
 };
-window.confirmHsFinal = function(){
+window.confirmHsSemis = function(){
   const div = state.data.divisions.girlHs;
-  const prelimPools = Object.entries(div.pools).filter(([id,p])=>p.stage==='prelim');
-  const top1s = prelimPools.map(([id,p])=>getPoolTop(div,id,1)[0]);
-  const wildcard = div.pools.p_final ? div.pools.p_final.wildcardPick : null;
-  if(top1s.some(x=>!x)){ toast('아직 순위가 확정되지 않은 조가 있습니다'); return; }
-  if(!wildcard){ toast('와일드카드 팀을 선택하세요'); return; }
-  const teams = [...top1s, wildcard];
-  const template = [['a','b','14:00'],['c','w','14:20'],['a','c','14:40'],['b','w','15:00'],['a','w','15:20'],['b','c','15:40']];
-  const slotMap = { a:top1s[0], b:top1s[1], c:top1s[2], w:wildcard };
+  const a = (div.pools.p_sa&&div.pools.p_sa.teams)||[], b=(div.pools.p_sb&&div.pools.p_sb.teams)||[];
+  if(a.length!==3 || b.length!==3){ toast('A조, B조에 각각 3팀씩 배정하세요'); return; }
+  // 정식 시간표가 아직 공지되지 않아 경기 순서(숫자)로 채워둡니다.
+  const pairsA = [[a[0],a[1]],[a[1],a[2]],[a[0],a[2]]];
+  const pairsB = [[b[0],b[1]],[b[1],b[2]],[b[0],b[2]]];
   const updates = {};
-  updates['divisions/girlHs/pools/p_final/teams'] = teams;
-  template.forEach((row,idx)=>{
-    const mid='m_final_'+idx;
-    updates[`divisions/girlHs/matches/${mid}`] = {
-      poolId:'p_final', teamA:slotMap[row[0]], teamB:slotMap[row[1]], sets:{}, setsToPlay:2, drawAllowed:true,
-      stage:'final', time:row[2], court:'덕소고', date:'8/23(일)', status:'scheduled', createdAt: idx
-    };
+  let idx=0;
+  pairsA.forEach(([t1,t2])=>{
+    const mid='m_semis_'+(idx++);
+    updates[`divisions/girlHs/matches/${mid}`] = { poolId:'p_sa', teamA:t1, teamB:t2, sets:{}, setsToPlay:2, drawAllowed:true, stage:'semis', time:String(idx), court:'덕소고', date:'8/23(일)', status:'scheduled', createdAt: idx };
   });
-  db.ref('tournaments/'+state.code).update(updates).then(()=>toast('본선 대진이 생성되었습니다'));
+  pairsB.forEach(([t1,t2])=>{
+    const mid='m_semis_'+(idx++);
+    updates[`divisions/girlHs/matches/${mid}`] = { poolId:'p_sb', teamA:t1, teamB:t2, sets:{}, setsToPlay:2, drawAllowed:true, stage:'semis', time:String(idx), court:'덕소고', date:'8/23(일)', status:'scheduled', createdAt: idx };
+  });
+  db.ref('tournaments/'+state.code).update(updates).then(()=>toast('본선1(A/B조) 대진이 생성되었습니다 (정식 시간표 나오면 다시 알려주세요)'));
+};
+window.advanceHsFinal = function(){
+  const div = state.data.divisions.girlHs;
+  const topA = getPoolTop(div,'p_sa',1)[0];
+  const topB = getPoolTop(div,'p_sb',1)[0];
+  if(!topA||!topB){ toast('A조, B조 순위가 아직 확정되지 않았습니다'); return; }
+  const updates = {};
+  updates['divisions/girlHs/pools/p_grand/teams'] = [topA, topB];
+  updates['divisions/girlHs/matches/m_grand_final'] = {
+    poolId:'p_grand', teamA:topA, teamB:topB, sets:{}, setsToPlay:2, drawAllowed:true,
+    stage:'final', time:'1', court:'덕소고', date:'8/23(일)', status:'scheduled', createdAt:0
+  };
+  db.ref('tournaments/'+state.code).update(updates).then(()=>toast('결승 대진이 생성되었습니다'));
 };
 
 // ============================================================
