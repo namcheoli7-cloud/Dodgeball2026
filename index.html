@@ -1484,7 +1484,10 @@ function renderVenueView(d){
       ? `<div class="empty-state"><div class="big">🏐</div>이 날짜 경기는 이전 단계(예선) 결과에 따라 진출팀이 정해진 뒤에 대진이 만들어져요.<br>예선이 끝나면 여기에 자동으로 표시됩니다.</div>`
       : `<div class="empty-state"><div class="big">🏐</div>이 장소에 경기가 없습니다.</div>`;
   } else {
-    matches.forEach(({k,mid,m,div},idx)=>{
+    const divCounters = {};
+    matches.forEach(({k,mid,m,div})=>{
+      divCounters[k] = (divCounters[k]||0) + 1;
+      const orderLabel = divCounters[k]+'경기';
       const st = matchStats(m);
       const isLive = st.played>0 && !st.decided;
       const stageDef = (DIVISION_STAGES[k]||[]).find(s=>s.key===m.stage);
@@ -1492,7 +1495,7 @@ function renderVenueView(d){
       const poolName = div.pools[m.poolId] ? div.pools[m.poolId].name : '';
       html += `<div style="${isLive?'border:3px solid var(--out-orange);border-radius:12px;':''}">
         <div style="padding:2px 6px 0;font-size:11px;color:var(--chalk-dim);">${[DIVISION_PRESETS[k].short, stageTag, poolName].filter(Boolean).join(' · ')}</div>
-        ${renderMatchCard(k,mid,m,div,{showTimeCourtInputs:false, showScoreEntry:true, orderLabel:(idx+1)+'경기'})}
+        ${renderMatchCard(k,mid,m,div,{showTimeCourtInputs:false, showScoreEntry:true, orderLabel})}
       </div>`;
     });
   }
