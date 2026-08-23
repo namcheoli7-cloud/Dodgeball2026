@@ -1272,7 +1272,20 @@ function matchStats(m){
   if(m.forcedWinner==='A' || m.forcedWinner==='B'){
     return {winsA,winsB,played,setCount,decided:true,winner:m.forcedWinner,sumA,sumB};
   }
-  const decided = !m.drawAllowed ? (winsA>Math.floor(setCount/2) || winsB>Math.floor(setCount/2)) : (played===setCount);
+  let decided;
+  if(!m.drawAllowed){
+    // 과반수를 조기 확보(예: 3세트 중 2승)했으면 남은 세트 없이도 바로 승부 확정
+    if(winsA>Math.floor(setCount/2) || winsB>Math.floor(setCount/2)){
+      decided = true;
+    } else if(played===setCount){
+      // 모든 세트가 끝났으면, 무승부 세트가 있더라도 승수가 더 많은 쪽이 승리
+      decided = winsA!==winsB;
+    } else {
+      decided = false;
+    }
+  } else {
+    decided = played===setCount;
+  }
   let winner = null;
   if(decided && played>0){
     if(winsA>winsB) winner='A';
