@@ -1278,8 +1278,8 @@ function matchStats(m){
     if(winsA>Math.floor(setCount/2) || winsB>Math.floor(setCount/2)){
       decided = true;
     } else if(played===setCount){
-      // 모든 세트가 끝났으면, 무승부 세트가 있더라도 승수가 더 많은 쪽이 승리
-      decided = winsA!==winsB;
+      // 모든 세트가 끝나면 승부 확정. 승수가 같으면(무승부 세트가 있었어도) 그냥 무승부로 처리합니다.
+      decided = true;
     } else {
       decided = false;
     }
@@ -1592,18 +1592,6 @@ function renderMatchCard(k,mid,m,div,opts){
       html += `</div>`;
       if(winner==='draw' && status==='done'){
         html += `<div class="small-note" style="text-align:center;">세트 무승부 — 승점 1:1 처리됩니다.</div>`;
-      }
-      if(m.forcedWinner){
-        html += `<div class="small-note" style="text-align:center;color:var(--out-orange);">⚡ 연장전/골든볼로 승자가 결정된 경기입니다.</div>`;
-      }
-      if(isAdmin && !m.drawAllowed && st.played===setCount && winsA===winsB && !m.forcedWinner){
-        html += `<div class="match-actions">
-          <span class="small-note">동률! 연장전/골든볼 결과로 승자를 지정하세요:</span>
-        </div>
-        <div class="match-actions">
-          <button class="btn btn-sm" onclick="forceWinner('${k}','${mid}','A')">${nameA} 승</button>
-          <button class="btn btn-sm" onclick="forceWinner('${k}','${mid}','B')">${nameB} 승</button>
-        </div>`;
       }
     }
     if(isAdmin && showScoreEntry){
